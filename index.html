@@ -2,140 +2,73 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Japanese Reader Pro - Advanced</title>
+    <title>Japanese Reader Lite</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tinysegmenter@0.2.0/build/tinysegmenter.js"></script>
-    <style>
-        body { background-color: #F9F7E8; color: #4E342E; }
-        .word-active { background-color: #FFF9C4 !important; border-bottom: 2px solid #558B2F; }
-        .avocado-btn { background-color: #558B2F; transition: 0.3s; }
-        .avocado-btn:hover { background-color: #3E6722; }
-    </style>
 </head>
-<body class="p-6 md:p-10 font-sans">
-    <header class="max-w-4xl mx-auto flex justify-between items-center mb-8">
-        <h1 class="text-2xl font-bold flex items-center gap-2">
-            <img src="avocadologo.png" class="w-10 h-10"> Japanese Reader Pro
-        </h1>
+<body class="p-6 bg-[#F9F7E8] text-[#4E342E] font-sans">
+    <header class="max-w-4xl mx-auto mb-8">
+        <h1 class="text-2xl font-bold">Japanese Reader Lite (划词查词版)</h1>
     </header>
 
     <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        <main class="md:col-span-2 space-y-6">
-            <textarea id="input" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm outline-none focus:border-green-700 text-base" rows="6" placeholder="粘贴日语文本..."></textarea>
-            <button id="btn" class="avocado-btn w-full text-white py-4 rounded-xl font-bold text-lg">开始专业分词</button>
-            <div id="output" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm bg-white text-slate-700 text-base leading-relaxed min-h-[200px]">输入文本并点击处理...</div>
+        <main class="md:col-span-2">
+            <textarea id="input" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm h-[400px]" placeholder="在此粘贴日语文章..."></textarea>
+            <p class="text-xs text-gray-400 mt-2">提示：粘贴文章后，双击或鼠标划取想要查询的单词。</p>
+            <div id="displayArea" class="w-full p-6 border-2 border-slate-200 rounded-2xl bg-white mt-4 h-[200px] overflow-y-auto whitespace-pre-wrap"></div>
         </main>
+        
         <aside class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[600px]">
             <h2 class="font-bold text-lg mb-4">📖 生词本</h2>
             <div id="vocab-list" class="flex-1 overflow-y-auto space-y-3 text-sm"></div>
-            <div class="pt-4 border-t space-y-2">
-                <button onclick="exportCSV()" class="w-full bg-slate-800 text-white py-2 rounded-lg text-sm">导出生词本</button>
-                <button onclick="clearAll()" class="w-full text-red-400 text-xs">全部清空</button>
-            </div>
+            <button onclick="clearAll()" class="mt-4 w-full text-red-400 text-xs">全部清空</button>
         </aside>
     </div>
 
-    <div id="panel" class="fixed top-20 right-10 w-80 p-5 bg-white shadow-2xl rounded-2xl border border-green-200 z-50 hidden">
-        <h3 id="p-word" class="font-bold text-xl text-green-800"></h3>
-        <button onclick="speakWord()" class="text-xs text-blue-500 hover:underline mb-2 block">🔊 播放读音</button>
-        <p id="p-reading" class="text-sm text-gray-500 mb-2"></p>
-        <p id="p-cn" class="text-sm mb-4 border-t pt-2"></p>
-        <div class="flex gap-2">
-            <button onclick="saveFromPanel()" class="flex-1 bg-green-700 text-white py-2 rounded-lg">⭐ 收藏</button>
-            <button onclick="document.getElementById('panel').classList.add('hidden')" class="px-4 bg-gray-100 rounded-lg">关闭</button>
-        </div>
-    </div>
-
     <script>
-        // 初始化分词器
-        const segmenter = new TinySegmenter();
-        let currentWord = "", currentReading = "", currentCn = "";
+        const input = document.getElementById('input');
+        const display = document.getElementById('displayArea');
 
-        document.getElementById('btn').onclick = () => {
-            const text = document.getElementById('input').value;
-            const output = document.getElementById('output');
-            output.innerHTML = "";
-            // 使用 TinySegmenter 替换正则逻辑
-            const segments = segmenter.segment(text);
-            
-            segments.forEach(seg => {
-                if (seg.trim() === "") return;
-                const span = document.createElement('span');
-                span.className = "cursor-pointer p-0.5 rounded hover:bg-green-100 transition";
-                span.textContent = seg;
-                span.onclick = () => showPanel(seg);
-                output.appendChild(span);
-            });
+        // 将输入框内容同步到展示区
+        input.oninput = () => { display.textContent = input.value; };
+
+        // 监听双击或划词触发
+        display.onmouseup = async () => {
+            const selectedText = window.getSelection().toString().trim();
+            if (selectedText.length > 0) {
+                // 自动触发查词面板
+                lookupWord(selectedText);
+            }
         };
 
-        function speakWord() {
-            const msg = new SpeechSynthesisUtterance(currentWord);
-            msg.lang = 'ja-JP';
-            window.speechSynthesis.speak(msg);
-        }
-
-        async function showPanel(word) {
-            currentWord = word;
-            document.getElementById('p-word').textContent = word;
-            document.getElementById('p-reading').textContent = "正在获取读音...";
-            document.getElementById('p-cn').textContent = "正在获取翻译...";
-            document.getElementById('panel').classList.remove('hidden');
-            
-            // Jisho API
-            try {
-                const res = await fetch(`https://jisho.org/api/v1/search/words?keyword=${encodeURI(word)}`);
+        async function lookupWord(word) {
+            // 这里你可以直接弹窗或者用一个简单的 confirm 来处理，为了稳定我们简化为直接存入
+            const confirmSave = confirm(`查词: ${word}\n是否存入生词本？`);
+            if (confirmSave) {
+                // 获取简单信息(假名/翻译)
+                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=zh-CN&dt=t&q=${encodeURI(word)}`);
                 const data = await res.json();
-                currentReading = data.data.length > 0 ? (data.data[0].japanese[0].reading || "") : "未知";
-                document.getElementById('p-reading').textContent = `假名: ${currentReading}`;
-            } catch(e) { document.getElementById('p-reading').textContent = "无法获取读音"; }
-
-            // Google 翻译
-            try {
-                const tr = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=zh-CN&dt=t&q=${encodeURI(word)}`);
-                const trD = await tr.json();
-                currentCn = trD[0][0][0];
-                document.getElementById('p-cn').textContent = `中文: ${currentCn}`;
-            } catch(e) { document.getElementById('p-cn').textContent = "翻译失败，请点击生词本词条跳转查词"; }
+                const cn = data[0][0][0];
+                saveWord(word, cn);
+            }
         }
 
-        function saveFromPanel() {
+        function saveWord(word, cn) {
             let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            if(!list.find(item => item.word === currentWord)) {
-                list.push({ word: currentWord, reading: currentReading, cn: currentCn });
+            if(!list.find(item => item.word === word)) {
+                list.push({ word, cn });
                 localStorage.setItem('myVocab', JSON.stringify(list));
                 renderList();
             }
-            document.getElementById('panel').classList.add('hidden');
         }
 
         function renderList() {
             const list = document.getElementById('vocab-list');
             const items = JSON.parse(localStorage.getItem('myVocab') || '[]');
             list.innerHTML = items.map(i => `
-                <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-green-700 flex justify-between items-start">
-                    <div>
-                        <div class="font-bold text-green-800">${i.word} <span class="text-xs text-gray-400">${i.reading}</span></div>
-                        <div class="text-xs text-gray-600">${i.cn}</div>
-                    </div>
-                    <button onclick="removeWord('${i.word}')" class="text-red-400 p-1">✕</button>
+                <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-green-700 flex justify-between">
+                    <div><div class="font-bold">${i.word}</div><div class="text-xs text-gray-600">${i.cn}</div></div>
                 </div>
             `).join('');
-        }
-
-        function removeWord(word) {
-            let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            list = list.filter(i => i.word !== word);
-            localStorage.setItem('myVocab', JSON.stringify(list));
-            renderList();
-        }
-
-        function exportCSV() {
-            let items = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            let csv = "单词,假名,中文\n" + items.map(i => `"${i.word}","${i.reading}","${i.cn}"`).join('\n');
-            let a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob(["\ufeff", csv], {type: 'text/csv'}));
-            a.download = "生词本.csv";
-            a.click();
         }
 
         function clearAll() { localStorage.removeItem('myVocab'); renderList(); }
