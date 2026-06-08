@@ -2,77 +2,151 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Japanese Reader Lite</title>
+    <title>Japanese Reader</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #F9F7E8; color: #4E342E; font-family: 'Segoe UI', sans-serif; }
+        .avocado-card { background: #FFFFFF; border: 1px solid #EBE4DD; box-shadow: 0 10px 15px -3px rgba(85, 139, 47, 0.1); }
+        .btn-avocado { background-color: #558B2F; color: white; transition: 0.3s; }
+        .btn-avocado:hover { background-color: #3E6722; }
+        .custom-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23558B2F'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.2em; }
+    </style>
 </head>
-<body class="p-6 bg-[#F9F7E8] text-[#4E342E] font-sans">
-    <header class="max-w-4xl mx-auto mb-8">
-        <h1 class="text-2xl font-bold">Japanese Reader Lite (划词查词版)</h1>
-    </header>
-
-    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        <main class="md:col-span-2">
-            <textarea id="input" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm h-[400px]" placeholder="在此粘贴日语文章..."></textarea>
-            <p class="text-xs text-gray-400 mt-2">提示：粘贴文章后，双击或鼠标划取想要查询的单词。</p>
-            <div id="displayArea" class="w-full p-6 border-2 border-slate-200 rounded-2xl bg-white mt-4 h-[200px] overflow-y-auto whitespace-pre-wrap"></div>
-        </main>
+<body class="p-6 md:p-10">
+    <main class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8">
+        <div class="md:col-span-8 space-y-6">
+            <h1 class="text-3xl font-bold flex items-center gap-3 text-[#558B2F]">
+                <img src="avocadologo.png" class="w-12 h-12" alt="Logo"> Japanese Reader
+            </h1>
+            <div id="editorMode" class="space-y-4">
+                <textarea id="input" class="w-full p-8 rounded-3xl border-none shadow-inner bg-[#F4EDE8] outline-none min-h-[400px] text-lg" placeholder="粘贴日语文章..."></textarea>
+                <button id="btnStart" onclick="startReading()" class="btn-avocado w-full py-4 rounded-2xl font-bold text-lg">开始阅读</button>
+            </div>
+            <div id="readerMode" class="hidden relative">
+                <div id="textDisplay" class="w-full p-10 rounded-3xl avocado-card min-h-[400px] text-lg leading-loose" onmouseup="handleSelection()"></div>
+                <button id="btnEdit" onclick="switchToEdit()" class="absolute top-4 right-6 px-4 py-1 bg-gray-100 rounded-lg text-xs hover:bg-gray-200 text-gray-600">重新输入编辑</button>
+            </div>
+        </div>
         
-        <aside class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[600px]">
-            <h2 class="font-bold text-lg mb-4">📖 生词本</h2>
-            <div id="vocab-list" class="flex-1 overflow-y-auto space-y-3 text-sm"></div>
-            <button onclick="clearAll()" class="mt-4 w-full text-red-400 text-xs">全部清空</button>
+        <aside class="md:col-span-4 flex flex-col gap-6">
+            <div class="flex gap-2">
+                <select id="globalLang" class="custom-select flex-1 bg-white py-2 px-3 rounded-xl border-2 border-[#558B2F] text-xs cursor-pointer outline-none text-[#4A4A4A]" onchange="updateUI()">
+                    <option value="zh-CN">简体中文</option>
+                    <option value="en">English</option>
+                    <option value="ko">한국어</option>
+                    <option value="id">Bahasa Indonesia</option>
+                </select>
+                <select id="transEngine" class="custom-select flex-1 bg-white py-2 px-3 rounded-xl border-2 border-[#558B2F] text-xs cursor-pointer outline-none text-[#4A4A4A]">
+                    <option value="google">Google</option>
+                    <option value="baidu">Baidu</option>
+                </select>
+            </div>
+
+            <div class="avocado-card p-6 rounded-3xl h-[450px] flex flex-col">
+                <h2 id="vocabTitle" class="font-bold text-lg mb-4 text-[#558B2F]">📖 生词本</h2>
+                <div id="vocab-list" class="flex-1 overflow-y-auto space-y-3"></div>
+                <div class="mt-4 flex gap-2">
+                    <button id="btnExport" onclick="exportCSV()" class="flex-1 py-3 bg-slate-100 rounded-xl text-sm">导出生词本</button>
+                    <button id="btnClear" onclick="clearAll()" class="py-3 px-6 text-red-400 text-sm">清空</button>
+                </div>
+            </div>
+            <a id="feedbackLink" href="https://h5xjhwnvwx.feishu.cn/share/base/form/shrcnLbIhhb5HsCkhNOJJtBmS7d" target="_blank" class="text-center text-sm text-gray-400 hover:text-[#558B2F]">建议与反馈</a>
         </aside>
+    </main>
+
+    <div id="panel" class="fixed top-20 right-10 w-80 p-6 avocado-card rounded-3xl z-50 hidden">
+        <h3 id="p-word" class="font-bold text-2xl mb-2 text-[#558B2F]"></h3>
+        <p id="p-cn" class="text-sm text-gray-600 mb-6 italic">加载中...</p>
+        <button id="btnSave" onclick="saveWord()" class="btn-avocado w-full py-3 rounded-xl font-bold">收藏</button>
+        <button id="btnClose" onclick="document.getElementById('panel').classList.add('hidden')" class="w-full mt-2 py-2 text-gray-400 text-sm">关闭</button>
     </div>
 
     <script>
-        const input = document.getElementById('input');
-        const display = document.getElementById('displayArea');
-
-        // 将输入框内容同步到展示区
-        input.oninput = () => { display.textContent = input.value; };
-
-        // 监听双击或划词触发
-        display.onmouseup = async () => {
-            const selectedText = window.getSelection().toString().trim();
-            if (selectedText.length > 0) {
-                // 自动触发查词面板
-                lookupWord(selectedText);
-            }
+        const i18n = {
+            'zh-CN': { input: '粘贴日语文章...', start: '开始阅读', title: '📖 生词本', export: '导出生词本', clear: '清空', feedback: '建议与反馈', save: '收藏', close: '关闭', edit: '重新输入编辑' },
+            'en': { input: 'Paste Japanese text...', start: 'Start Reading', title: '📖 Vocabulary', export: 'Export List', clear: 'Clear', feedback: 'Feedback', save: 'Save', close: 'Close', edit: 'Edit Text' },
+            'ko': { input: '일본어 텍스트를 붙여넣으세요...', start: '읽기 시작', title: '📖 단어장', export: '단어장 내보내기', clear: '지우기', feedback: '피드백', save: '저장', close: '닫기', edit: '다시 편집' },
+            'id': { input: 'Tempel teks bahasa Jepang...', start: 'Mulai Membaca', title: '📖 Daftar Kata', export: 'Ekspor Daftar', clear: 'Hapus', feedback: 'Saran & Masukan', save: 'Simpan', close: 'Tutup', edit: 'Edit Ulang' }
         };
 
-        async function lookupWord(word) {
-            // 这里你可以直接弹窗或者用一个简单的 confirm 来处理，为了稳定我们简化为直接存入
-            const confirmSave = confirm(`查词: ${word}\n是否存入生词本？`);
-            if (confirmSave) {
-                // 获取简单信息(假名/翻译)
-                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=zh-CN&dt=t&q=${encodeURI(word)}`);
+        function updateUI() {
+            const lang = document.getElementById('globalLang').value;
+            const t = i18n[lang];
+            document.getElementById('input').placeholder = t.input;
+            document.getElementById('btnStart').textContent = t.start;
+            document.getElementById('vocabTitle').textContent = t.title;
+            document.getElementById('btnExport').textContent = t.export;
+            document.getElementById('btnClear').textContent = t.clear;
+            document.getElementById('feedbackLink').textContent = t.feedback;
+            document.getElementById('btnSave').textContent = t.save;
+            document.getElementById('btnClose').textContent = t.close;
+            document.getElementById('btnEdit').textContent = t.edit;
+        }
+
+        function startReading() {
+            const text = document.getElementById('input').value;
+            if(!text) return;
+            document.getElementById('textDisplay').textContent = text;
+            document.getElementById('editorMode').classList.add('hidden');
+            document.getElementById('readerMode').classList.remove('hidden');
+        }
+
+        function switchToEdit() {
+            document.getElementById('editorMode').classList.remove('hidden');
+            document.getElementById('readerMode').classList.add('hidden');
+        }
+
+        async function handleSelection() {
+            const text = window.getSelection().toString().trim();
+            if (text.length > 0) {
+                const lang = document.getElementById('globalLang').value;
+                document.getElementById('p-word').textContent = text;
+                document.getElementById('panel').classList.remove('hidden');
+                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=${lang}&dt=t&q=${encodeURI(text)}`);
                 const data = await res.json();
-                const cn = data[0][0][0];
-                saveWord(word, cn);
+                document.getElementById('p-cn').textContent = data[0][0][0];
             }
         }
 
-        function saveWord(word, cn) {
+        function saveWord() { 
+            const lang = document.getElementById('globalLang').value;
+            const word = document.getElementById('p-word').textContent;
+            const def = document.getElementById('p-cn').textContent;
+            
             let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            if(!list.find(item => item.word === word)) {
-                list.push({ word, cn });
+            // 使用 word + lang 作为唯一键来防止同一单词不同语言的覆盖
+            if(!list.find(i => i.word === word && i.lang === lang)) {
+                list.push({ word, cn: def, lang });
                 localStorage.setItem('myVocab', JSON.stringify(list));
                 renderList();
             }
+            document.getElementById('panel').classList.add('hidden');
         }
 
-        function renderList() {
+        function renderList() { 
             const list = document.getElementById('vocab-list');
             const items = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            list.innerHTML = items.map(i => `
-                <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-green-700 flex justify-between">
-                    <div><div class="font-bold">${i.word}</div><div class="text-xs text-gray-600">${i.cn}</div></div>
-                </div>
-            `).join('');
+            list.innerHTML = items.map(i => `<div class="p-3 bg-[#F8F5F0] rounded-xl flex justify-between"><div><div class="font-bold text-sm text-[#558B2F]">${i.word} (${i.lang})</div><div class="text-xs text-gray-500 truncate w-32">${i.cn}</div></div><button onclick="removeWord('${i.word}', '${i.lang}')" class="text-gray-300 hover:text-red-400">✕</button></div>`).join('');
         }
 
+        function removeWord(word, lang) { 
+            let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
+            list = list.filter(i => !(i.word === word && i.lang === lang));
+            localStorage.setItem('myVocab', JSON.stringify(list));
+            renderList();
+        }
+
+        function exportCSV() { 
+            let items = JSON.parse(localStorage.getItem('myVocab') || '[]');
+            let csv = "单词,释义,语言\n" + items.map(i => `"${i.word}","${i.cn}","${i.lang}"`).join('\n');
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob(["\ufeff", csv], {type: 'text/csv'}));
+            a.download = "生词本.csv";
+            a.click();
+        }
         function clearAll() { localStorage.removeItem('myVocab'); renderList(); }
         renderList();
+        updateUI();
     </script>
 </body>
 </html>
