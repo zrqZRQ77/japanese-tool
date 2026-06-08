@@ -2,238 +2,76 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Japanese Furigana Generator</title>
-    <script src="https://unpkg.com/wanakana"></script>
+    <title>Japanese Reading Helper</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #F9F7E8; color: #4E342E; }
         .word-active { background-color: #FFF9C4 !important; border-bottom: 2px solid #558B2F; }
-        ruby rt { color: #8D6E63; font-size: 0.7rem; pointer-events: none; }
         .avocado-btn { background-color: #558B2F; transition: 0.3s; }
         .avocado-btn:hover { background-color: #3E6722; }
-        .avocado-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        /* 加载进度条 */
-        #loading-bar-wrap {
-            width: 100%;
-            background: #d4e6c3;
-            border-radius: 999px;
-            height: 6px;
-            overflow: hidden;
-            display: none;
-        }
-        #loading-bar {
-            height: 6px;
-            width: 0%;
-            background: #558B2F;
-            border-radius: 999px;
-            animation: loadpulse 18s ease-out forwards;
-        }
-        @keyframes loadpulse {
-            0%   { width: 0%; }
-            30%  { width: 40%; }
-            60%  { width: 65%; }
-            85%  { width: 82%; }
-            100% { width: 92%; }
-        }
     </style>
 </head>
 <body class="p-6 md:p-10 font-sans">
-
     <header class="max-w-4xl mx-auto flex justify-between items-center mb-8">
         <h1 class="text-2xl font-bold flex items-center gap-2">
-            <img src="avocadologo.png" class="w-10 h-10"> Japanese Furigana Generator
+            <img src="avocadologo.png" class="w-10 h-10"> Japanese Reading Helper
         </h1>
-        <select id="lang-select" class="bg-white border rounded p-1 text-sm outline-none">
-            <option value="zh">中文</option>
-            <option value="en">English</option>
-            <option value="id">Indonesian</option>
-            <option value="ko">한국어</option>
-            <option value="vi">Tiếng Việt</option>
-        </select>
     </header>
 
     <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        <main class="md:col-span-2 space-y-4">
+        <main class="md:col-span-2 space-y-6">
             <textarea id="input" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm outline-none focus:border-green-700 text-base" rows="6" placeholder="粘贴日语文本..."></textarea>
-
-            <button id="btn" class="avocado-btn w-full text-white py-4 rounded-xl font-bold text-lg" disabled>
-                词典加载中...
-            </button>
-
-            <!-- 进度条 -->
-            <div id="loading-bar-wrap">
-                <div id="loading-bar"></div>
-            </div>
-            <p id="loading-tip" class="text-xs text-slate-400 text-center" style="display:none">
-                首次加载词典约需 20-30 秒，加载完成后将自动缓存，下次打开即刻可用 ⚡
-            </p>
-
-            <div id="output" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm bg-white text-slate-500 text-base leading-relaxed min-h-[200px]">
-                输出结果...
-            </div>
-
-            <a href="https://h5xjhwnvwx.feishu.cn/share/base/form/shrcnLbIhhb5HsCkhNOJJtBmS7d"
-               target="_blank"
-               class="text-xs text-slate-500 hover:underline">
-               报告标注错误 (Report Error)
-            </a>
+            <button id="btn" class="avocado-btn w-full text-white py-4 rounded-xl font-bold text-lg">开始处理</button>
+            <div id="output" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm bg-white text-slate-700 text-base leading-relaxed min-h-[200px]">输入文本并点击处理...</div>
         </main>
-
         <aside class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[600px]">
-            <h2 id="vocab-title" class="font-bold text-lg mb-4">📖 生词本</h2>
-            <div id="vocab-list" class="flex-1 overflow-y-auto space-y-2 text-sm"></div>
-            <div class="mt-4 pt-4 border-t space-y-2">
-                <button id="export-btn" onclick="exportAnki()" class="w-full bg-slate-800 text-white py-2 rounded-lg text-sm">生词本导出</button>
-                <button id="clear-btn" onclick="clearAll()" class="w-full text-red-400 text-xs">全部清空</button>
-            </div>
+            <h2 class="font-bold text-lg mb-4">📖 生词本 (含上下文)</h2>
+            <div id="vocab-list" class="flex-1 overflow-y-auto space-y-3 text-sm"></div>
+            <button onclick="clearAll()" class="mt-4 w-full text-red-400 text-xs">全部清空</button>
         </aside>
     </div>
 
     <script>
-        const trans = {
-            zh: { btn: "开始解析", title: "生词本",    exp: "生词本导出",       clr: "全部清空",  ph: "粘贴日语文本...",              out: "输出结果..." },
-            en: { btn: "Start Analysis", title: "Vocabulary", exp: "Export Vocabulary", clr: "Clear All", ph: "Paste Japanese text...",       out: "Analysis result..." },
-            id: { btn: "Mulai Analisis", title: "Kosakata",   exp: "Ekspor Kosakata",  clr: "Hapus Semua", ph: "Tempel teks Jepang...",      out: "Hasil analisis..." },
-            ko: { btn: "분석 시작",      title: "단어장",     exp: "단어장 내보내기", clr: "모두 지우기", ph: "일본어 텍스트를 붙여넣으세요...", out: "분석 결과..." },
-            vi: { btn: "Bắt đầu phân tích", title: "Từ vựng", exp: "Xuất từ vựng",   clr: "Xóa tất cả", ph: "Dán văn bản tiếng Nhật...",  out: "Kết quả phân tích..." }
-        };
-
-        let currentLang = 'zh';
-        let workerReady = false;
-
-        const btn         = document.getElementById('btn');
-        const loadingWrap = document.getElementById('loading-bar-wrap');
-        const loadingTip  = document.getElementById('loading-tip');
-
-        // ── 启动 Web Worker ──────────────────────────────────────
-        const worker = new Worker('worker.js');
-
-        // 显示进度条
-        loadingWrap.style.display = 'block';
-        loadingTip.style.display  = 'block';
-
-        worker.onmessage = (e) => {
-            if (e.data.type === 'ready') {
-                // 词典加载完成
-                workerReady = true;
-                loadingWrap.style.display = 'none';
-                loadingTip.style.display  = 'none';
-                btn.disabled  = false;
-                btn.textContent = trans[currentLang].btn;
-
-            } else if (e.data.type === 'result') {
-                // 收到分词结果，渲染页面
-                renderTokens(e.data.tokens);
-
-            } else if (e.data.type === 'error') {
-                loadingWrap.style.display = 'none';
-                loadingTip.style.display  = 'none';
-                btn.disabled = false;
-                btn.textContent = '加载失败，请刷新重试';
-                btn.style.background = '#c0392b';
-            }
-        };
-
-        // ── 语言切换 ─────────────────────────────────────────────
-        document.getElementById('lang-select').onchange = (e) => {
-            currentLang = e.target.value;
-            const t = trans[currentLang];
-            if (workerReady) btn.textContent = t.btn;
-            document.getElementById('vocab-title').textContent   = t.title;
-            document.getElementById('export-btn').textContent    = t.exp;
-            document.getElementById('clear-btn').textContent     = t.clr;
-            document.getElementById('input').placeholder         = t.ph;
-            const outDiv = document.getElementById('output');
-            if (outDiv.textContent.trim().length < 15 || outDiv.textContent.includes('...')) {
-                outDiv.textContent = t.out;
-            }
-        };
-
-        // ── 点击解析按钮 ─────────────────────────────────────────
-        btn.onclick = () => {
-            const text = document.getElementById('input').value.trim();
-            if (!text) return;
-            if (!workerReady) return;
-            btn.disabled = true;
-            btn.textContent = '解析中...';
-            worker.postMessage({ type: 'tokenize', text });
-        };
-
-        // ── 渲染分词结果 ─────────────────────────────────────────
-        function renderTokens(tokens) {
+        document.getElementById('btn').onclick = () => {
+            const text = document.getElementById('input').value;
             const output = document.getElementById('output');
-            output.innerHTML = '';
-            output.style.color = '#4E342E';
-
-            const needsRuby = (str) => /[\u4e00-\u9fff\u3400-\u4dbf]/.test(str);
-            const savedWords = JSON.parse(localStorage.getItem('myVocab') || '[]');
-
-            tokens.forEach(token => {
-                if (token.pos === '補助記号') return;
-                const span    = document.createElement('span');
-                const reading = wanakana.toHiragana(token.reading || '');
-                const isActive = savedWords.some(w => w.word === token.surface_form);
-
-                span.className = 'cursor-pointer p-1 rounded inline-block transition hover:bg-green-100' + (isActive ? ' word-active' : '');
-                span.innerHTML = needsRuby(token.surface_form)
-                    ? `<ruby>${token.surface_form}<rt>${reading}</rt></ruby>`
-                    : token.surface_form;
-                span.onclick = () => toggleWord(token.surface_form, reading, span);
+            output.innerHTML = "";
+            const words = text.split(/([ \n\r\t,，。！？])/).filter(w => w.trim().length > 0);
+            
+            words.forEach(w => {
+                const span = document.createElement('span');
+                span.className = "cursor-pointer p-1 rounded hover:bg-green-100";
+                span.textContent = w;
+                span.onclick = () => {
+                    span.classList.toggle('word-active');
+                    if(span.classList.contains('word-active')) saveWord(w, text);
+                };
                 output.appendChild(span);
             });
+        };
 
-            btn.disabled    = false;
-            btn.textContent = trans[currentLang].btn;
+        function saveWord(word, context) {
+            let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
+            if(!list.find(item => item.word === word)) {
+                list.push({ word, context: context.substring(0, 50) + "..." });
+                localStorage.setItem('myVocab', JSON.stringify(list));
+            }
+            renderList();
         }
 
-        // ── 生词本操作 ───────────────────────────────────────────
-        function toggleWord(word, reading, element) {
-            let words = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            const index = words.findIndex(w => w.word === word);
-            if (index === -1) { words.push({ word, reading }); element.classList.add('word-active'); }
-            else              { words.splice(index, 1);        element.classList.remove('word-active'); }
-            localStorage.setItem('myVocab', JSON.stringify(words));
-            updateList();
-        }
-
-        function updateList() {
-            const list  = document.getElementById('vocab-list');
-            const words = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            list.innerHTML = words.map(w => `
-                <div class="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
-                    <span>${w.word} <span class="text-slate-400 text-xs">(${w.reading})</span></span>
-                    <button onclick="removeWord('${w.word}')" class="text-red-400 hover:text-red-600">✕</button>
+        function renderList() {
+            const list = document.getElementById('vocab-list');
+            const items = JSON.parse(localStorage.getItem('myVocab') || '[]');
+            list.innerHTML = items.map(item => `
+                <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-green-700">
+                    <a href="https://ejje.weblio.jp/content/${item.word}" target="_blank" class="font-bold text-green-800 hover:underline">${item.word}</a>
+                    <div class="text-[10px] text-slate-400 mt-1">${item.context}</div>
                 </div>
             `).join('');
         }
 
-        function removeWord(word) {
-            let words = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            words = words.filter(w => w.word !== word);
-            localStorage.setItem('myVocab', JSON.stringify(words));
-            updateList();
-            document.querySelectorAll('.word-active').forEach(el => {
-                if (el.innerText.includes(word)) el.classList.remove('word-active');
-            });
-        }
-
-        function clearAll() {
-            localStorage.removeItem('myVocab');
-            updateList();
-            document.querySelectorAll('.word-active').forEach(el => el.classList.remove('word-active'));
-        }
-
-        function exportAnki() {
-            const words = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            const csv   = words.map(w => `${w.word},${w.reading}`).join('\n');
-            const a     = document.createElement('a');
-            a.href      = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
-            a.download  = '单词本导出.csv';
-            a.click();
-        }
-
-        updateList();
+        function clearAll() { localStorage.removeItem('myVocab'); renderList(); }
+        renderList();
     </script>
 </body>
 </html>
