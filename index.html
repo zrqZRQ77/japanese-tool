@@ -2,7 +2,12 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Japanese Reader</title>
+    <title id="siteTitle">Japanese Reader - 日语划词阅读工作台</title>
+    <meta name="description" id="siteDesc" content="高效的日语阅读工具，支持划词查词、生词本导出及整句翻译对比，助力日语学习。">
+    <meta name="keywords" content="Japanese Reader,日语学习,日语划词,生词本,日语翻译,Japanese learning tools">
+    <meta property="og:title" content="Japanese Reader">
+    <meta property="og:description" content="沉浸式日语阅读与查词工作台。">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #F9F7E8; color: #4E342E; font-family: 'Segoe UI', sans-serif; }
@@ -63,18 +68,22 @@
 
     <script>
         const i18n = {
-            'zh-CN': { input: '粘贴日语文章...', start: '开始阅读', title: '📖 生词本', export: '导出生词本', clear: '清空', feedback: '建议与反馈', save: '收藏', close: '关闭', edit: '重新输入编辑' },
-            'en': { input: 'Paste Japanese text...', start: 'Start Reading', title: '📖 Vocabulary', export: 'Export List', clear: 'Clear', feedback: 'Feedback', save: 'Save', close: 'Close', edit: 'Edit Text' },
-            'ko': { input: '일본어 텍스트를 붙여넣으세요...', start: '읽기 시작', title: '📖 단어장', export: '단어장 내보내기', clear: '지우기', feedback: '피드백', save: '저장', close: '닫기', edit: '다시 편집' },
-            'id': { input: 'Tempel teks bahasa Jepang...', start: 'Mulai Membaca', title: '📖 Daftar Kata', export: 'Ekspor Daftar', clear: 'Hapus', feedback: 'Saran & Masukan', save: 'Simpan', close: 'Tutup', edit: 'Edit Ulang' }
+            'zh-CN': { title: 'Japanese Reader - 日语阅读工作台', desc: '高效的日语阅读与查词工具', input: '粘贴日语文章...', start: '开始阅读', vocab: '📖 生词本', export: '导出生词本', clear: '清空', feedback: '建议与反馈', save: '收藏', close: '关闭', edit: '重新输入编辑' },
+            'en': { title: 'Japanese Reader - Reading Workspace', desc: 'Efficient Japanese reading and vocabulary tool', input: 'Paste Japanese text...', start: 'Start Reading', vocab: '📖 Vocabulary', export: 'Export List', clear: 'Clear', feedback: 'Feedback', save: 'Save', close: 'Close', edit: 'Edit Text' },
+            'ko': { title: 'Japanese Reader - 일본어 읽기 작업대', desc: '효율적인 일본어 읽기 및 단어장 도구', input: '일본어 텍스트를 붙여넣으세요...', start: '읽기 시작', vocab: '📖 단어장', export: '단어장 내보내기', clear: '지우기', feedback: '피드백', save: '저장', close: '닫기', edit: '다시 편집' },
+            'id': { title: 'Japanese Reader - Alat Membaca Bahasa Jepang', desc: 'Alat membaca dan kosa kata bahasa Jepang yang efisien', input: 'Tempel teks bahasa Jepang...', start: 'Mulai Membaca', vocab: '📖 Daftar Kata', export: 'Ekspor Daftar', clear: 'Hapus', feedback: 'Saran & Masukan', save: 'Simpan', close: 'Tutup', edit: 'Edit Ulang' }
         };
 
         function updateUI() {
             const lang = document.getElementById('globalLang').value;
             const t = i18n[lang];
+            // 更新 SEO meta
+            document.title = t.title;
+            document.getElementById('siteDesc').content = t.desc;
+            // 更新界面
             document.getElementById('input').placeholder = t.input;
             document.getElementById('btnStart').textContent = t.start;
-            document.getElementById('vocabTitle').textContent = t.title;
+            document.getElementById('vocabTitle').textContent = t.vocab;
             document.getElementById('btnExport').textContent = t.export;
             document.getElementById('btnClear').textContent = t.clear;
             document.getElementById('feedbackLink').textContent = t.feedback;
@@ -83,19 +92,9 @@
             document.getElementById('btnEdit').textContent = t.edit;
         }
 
-        function startReading() {
-            const text = document.getElementById('input').value;
-            if(!text) return;
-            document.getElementById('textDisplay').textContent = text;
-            document.getElementById('editorMode').classList.add('hidden');
-            document.getElementById('readerMode').classList.remove('hidden');
-        }
-
-        function switchToEdit() {
-            document.getElementById('editorMode').classList.remove('hidden');
-            document.getElementById('readerMode').classList.add('hidden');
-        }
-
+        // ... 其余逻辑保持不变
+        function startReading() { const text = document.getElementById('input').value; if(!text) return; document.getElementById('textDisplay').textContent = text; document.getElementById('editorMode').classList.add('hidden'); document.getElementById('readerMode').classList.remove('hidden'); }
+        function switchToEdit() { document.getElementById('editorMode').classList.remove('hidden'); document.getElementById('readerMode').classList.add('hidden'); }
         async function handleSelection() {
             const text = window.getSelection().toString().trim();
             if (text.length > 0) {
@@ -107,46 +106,12 @@
                 document.getElementById('p-cn').textContent = data[0][0][0];
             }
         }
-
-        function saveWord() { 
-            const lang = document.getElementById('globalLang').value;
-            const word = document.getElementById('p-word').textContent;
-            const def = document.getElementById('p-cn').textContent;
-            
-            let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            // 使用 word + lang 作为唯一键来防止同一单词不同语言的覆盖
-            if(!list.find(i => i.word === word && i.lang === lang)) {
-                list.push({ word, cn: def, lang });
-                localStorage.setItem('myVocab', JSON.stringify(list));
-                renderList();
-            }
-            document.getElementById('panel').classList.add('hidden');
-        }
-
-        function renderList() { 
-            const list = document.getElementById('vocab-list');
-            const items = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            list.innerHTML = items.map(i => `<div class="p-3 bg-[#F8F5F0] rounded-xl flex justify-between"><div><div class="font-bold text-sm text-[#558B2F]">${i.word} (${i.lang})</div><div class="text-xs text-gray-500 truncate w-32">${i.cn}</div></div><button onclick="removeWord('${i.word}', '${i.lang}')" class="text-gray-300 hover:text-red-400">✕</button></div>`).join('');
-        }
-
-        function removeWord(word, lang) { 
-            let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            list = list.filter(i => !(i.word === word && i.lang === lang));
-            localStorage.setItem('myVocab', JSON.stringify(list));
-            renderList();
-        }
-
-        function exportCSV() { 
-            let items = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            let csv = "单词,释义,语言\n" + items.map(i => `"${i.word}","${i.cn}","${i.lang}"`).join('\n');
-            let a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob(["\ufeff", csv], {type: 'text/csv'}));
-            a.download = "生词本.csv";
-            a.click();
-        }
+        function saveWord() { const lang = document.getElementById('globalLang').value; const word = document.getElementById('p-word').textContent; const def = document.getElementById('p-cn').textContent; let list = JSON.parse(localStorage.getItem('myVocab') || '[]'); if(!list.find(i => i.word === word && i.lang === lang)) { list.push({ word, cn: def, lang }); localStorage.setItem('myVocab', JSON.stringify(list)); renderList(); } document.getElementById('panel').classList.add('hidden'); }
+        function renderList() { const list = document.getElementById('vocab-list'); const items = JSON.parse(localStorage.getItem('myVocab') || '[]'); list.innerHTML = items.map(i => `<div class="p-3 bg-[#F8F5F0] rounded-xl flex justify-between"><div><div class="font-bold text-sm text-[#558B2F]">${i.word}</div><div class="text-xs text-gray-500 truncate w-32">${i.cn} (${i.lang})</div></div><button onclick="removeWord('${i.word}', '${i.lang}')" class="text-gray-300 hover:text-red-400">✕</button></div>`).join(''); }
+        function removeWord(word, lang) { let list = JSON.parse(localStorage.getItem('myVocab') || '[]'); list = list.filter(i => !(i.word === word && i.lang === lang)); localStorage.setItem('myVocab', JSON.stringify(list)); renderList(); }
+        function exportCSV() { let items = JSON.parse(localStorage.getItem('myVocab') || '[]'); let csv = "单词,释义,语言\n" + items.map(i => `"${i.word}","${i.cn}","${i.lang}"`).join('\n'); let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(["\ufeff", csv], {type: 'text/csv'})); a.download = "生词本.csv"; a.click(); }
         function clearAll() { localStorage.removeItem('myVocab'); renderList(); }
-        renderList();
-        updateUI();
+        renderList(); updateUI();
     </script>
 </body>
 </html>
