@@ -2,8 +2,9 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Japanese Reader Pro</title>
+    <title>Japanese Reader Pro - Advanced</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tinysegmenter@0.2.0/build/tinysegmenter.js"></script>
     <style>
         body { background-color: #F9F7E8; color: #4E342E; }
         .word-active { background-color: #FFF9C4 !important; border-bottom: 2px solid #558B2F; }
@@ -21,7 +22,7 @@
     <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         <main class="md:col-span-2 space-y-6">
             <textarea id="input" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm outline-none focus:border-green-700 text-base" rows="6" placeholder="粘贴日语文本..."></textarea>
-            <button id="btn" class="avocado-btn w-full text-white py-4 rounded-xl font-bold text-lg">开始处理</button>
+            <button id="btn" class="avocado-btn w-full text-white py-4 rounded-xl font-bold text-lg">开始专业分词</button>
             <div id="output" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm bg-white text-slate-700 text-base leading-relaxed min-h-[200px]">输入文本并点击处理...</div>
         </main>
         <aside class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[600px]">
@@ -36,7 +37,7 @@
 
     <div id="panel" class="fixed top-20 right-10 w-80 p-5 bg-white shadow-2xl rounded-2xl border border-green-200 z-50 hidden">
         <h3 id="p-word" class="font-bold text-xl text-green-800"></h3>
-        <button onclick="speakWord()" class="text-xs text-blue-500 hover:underline">🔊 播放读音</button>
+        <button onclick="speakWord()" class="text-xs text-blue-500 hover:underline mb-2 block">🔊 播放读音</button>
         <p id="p-reading" class="text-sm text-gray-500 mb-2"></p>
         <p id="p-cn" class="text-sm mb-4 border-t pt-2"></p>
         <div class="flex gap-2">
@@ -46,55 +47,55 @@
     </div>
 
     <script>
-        let currentWord = "";
-        let currentReading = "";
-        let currentCn = "";
-
-        // 正则分词逻辑
-        function segmentText(text) {
-            const p = /([はがをにへとへでもからまで、。！？])/g;
-            return text.replace(p, ' $1 ').split(/\s+/).filter(w => w.length > 0);
-        }
+        // 初始化分词器
+        const segmenter = new TinySegmenter();
+        let currentWord = "", currentReading = "", currentCn = "";
 
         document.getElementById('btn').onclick = () => {
             const text = document.getElementById('input').value;
             const output = document.getElementById('output');
             output.innerHTML = "";
-            const segments = segmentText(text);
+            // 使用 TinySegmenter 替换正则逻辑
+            const segments = segmenter.segment(text);
+            
             segments.forEach(seg => {
+                if (seg.trim() === "") return;
                 const span = document.createElement('span');
-                span.className = "cursor-pointer p-1 rounded hover:bg-green-100 transition";
+                span.className = "cursor-pointer p-0.5 rounded hover:bg-green-100 transition";
                 span.textContent = seg;
-                span.onclick = () => showPanel(seg, text);
+                span.onclick = () => showPanel(seg);
                 output.appendChild(span);
             });
         };
 
-        // 语音播放功能
         function speakWord() {
             const msg = new SpeechSynthesisUtterance(currentWord);
             msg.lang = 'ja-JP';
             window.speechSynthesis.speak(msg);
         }
 
-        async function showPanel(word, context) {
+        async function showPanel(word) {
             currentWord = word;
             document.getElementById('p-word').textContent = word;
-            document.getElementById('p-reading').textContent = "加载中...";
+            document.getElementById('p-reading').textContent = "正在获取读音...";
+            document.getElementById('p-cn').textContent = "正在获取翻译...";
             document.getElementById('panel').classList.remove('hidden');
             
-            // 查词逻辑
+            // Jisho API
             try {
-                const res = await fetch(`https://jisho.org/api/v1/search/words?keyword=${word}`);
+                const res = await fetch(`https://jisho.org/api/v1/search/words?keyword=${encodeURI(word)}`);
                 const data = await res.json();
                 currentReading = data.data.length > 0 ? (data.data[0].japanese[0].reading || "") : "未知";
                 document.getElementById('p-reading').textContent = `假名: ${currentReading}`;
-                
+            } catch(e) { document.getElementById('p-reading').textContent = "无法获取读音"; }
+
+            // Google 翻译
+            try {
                 const tr = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=zh-CN&dt=t&q=${encodeURI(word)}`);
                 const trD = await tr.json();
                 currentCn = trD[0][0][0];
                 document.getElementById('p-cn').textContent = `中文: ${currentCn}`;
-            } catch(e) { document.getElementById('p-cn').textContent = "翻译失败"; }
+            } catch(e) { document.getElementById('p-cn').textContent = "翻译失败，请点击生词本词条跳转查词"; }
         }
 
         function saveFromPanel() {
@@ -111,12 +112,12 @@
             const list = document.getElementById('vocab-list');
             const items = JSON.parse(localStorage.getItem('myVocab') || '[]');
             list.innerHTML = items.map(i => `
-                <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-green-700 flex justify-between">
+                <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-green-700 flex justify-between items-start">
                     <div>
                         <div class="font-bold text-green-800">${i.word} <span class="text-xs text-gray-400">${i.reading}</span></div>
                         <div class="text-xs text-gray-600">${i.cn}</div>
                     </div>
-                    <button onclick="removeWord('${i.word}')" class="text-red-400 px-2">✕</button>
+                    <button onclick="removeWord('${i.word}')" class="text-red-400 p-1">✕</button>
                 </div>
             `).join('');
         }
