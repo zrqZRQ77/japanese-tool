@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Japanese Reading Helper</title>
+    <title>Japanese Reader Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #F9F7E8; color: #4E342E; }
@@ -14,7 +14,7 @@
 <body class="p-6 md:p-10 font-sans">
     <header class="max-w-4xl mx-auto flex justify-between items-center mb-8">
         <h1 class="text-2xl font-bold flex items-center gap-2">
-            <img src="avocadologo.png" class="w-10 h-10"> Japanese Reading Helper
+            <img src="avocadologo.png" class="w-10 h-10"> Japanese Reader Pro
         </h1>
     </header>
 
@@ -27,64 +27,100 @@
         <aside class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[600px]">
             <h2 class="font-bold text-lg mb-4">📖 生词本</h2>
             <div id="vocab-list" class="flex-1 overflow-y-auto space-y-3 text-sm"></div>
-            <button onclick="clearAll()" class="mt-4 w-full text-red-400 text-xs">全部清空</button>
+            <div class="pt-4 border-t space-y-2">
+                <button onclick="exportCSV()" class="w-full bg-slate-800 text-white py-2 rounded-lg text-sm">导出 CSV (Anki)</button>
+                <button onclick="clearAll()" class="w-full text-red-400 text-xs">全部清空</button>
+            </div>
         </aside>
     </div>
 
+    <div id="panel" class="fixed top-20 right-10 w-80 p-5 bg-white shadow-2xl rounded-2xl border border-green-200 z-50 hidden">
+        <h3 id="p-word" class="font-bold text-xl text-green-800"></h3>
+        <p id="p-reading" class="text-sm text-gray-500 mb-2"></p>
+        <p id="p-cn" class="text-sm mb-4 border-t pt-2"></p>
+        <div class="flex gap-2">
+            <button onclick="saveFromPanel()" class="flex-1 bg-green-700 text-white py-2 rounded-lg">⭐ 收藏</button>
+            <button onclick="document.getElementById('panel').classList.add('hidden')" class="px-4 bg-gray-100 rounded-lg">关闭</button>
+        </div>
+    </div>
+
     <script>
+        let currentWord = "";
+        let currentReading = "";
+        let currentCn = "";
+        let currentContext = "";
+
         document.getElementById('btn').onclick = () => {
             const text = document.getElementById('input').value;
             const output = document.getElementById('output');
             output.innerHTML = "";
-            
-            // 使用更精细的分词逻辑：将文本按字符拆分并处理
-            // 如果是日语汉字/假名，作为一个词显示
             const segments = text.split(/([ \n\r\t,，。！？])/).filter(w => w.trim().length > 0);
             
-            segments.forEach(segment => {
+            segments.forEach(seg => {
                 const span = document.createElement('span');
                 span.className = "cursor-pointer p-1 rounded hover:bg-green-100 transition";
-                span.textContent = segment;
-                span.onclick = () => {
-                    span.classList.toggle('word-active');
-                    if(span.classList.contains('word-active')) {
-                        saveWord(segment, text);
-                    } else {
-                        removeWord(segment);
-                    }
-                };
+                span.textContent = seg;
+                span.onclick = () => showPanel(seg, text);
                 output.appendChild(span);
             });
         };
 
-        function saveWord(word, context) {
+        async function showPanel(word, context) {
+            currentWord = word;
+            currentContext = context.substring(0, 30) + "...";
+            const panel = document.getElementById('panel');
+            document.getElementById('p-word').textContent = word;
+            document.getElementById('p-reading').textContent = "加载中...";
+            document.getElementById('p-cn').textContent = "翻译中...";
+            panel.classList.remove('hidden');
+
+            // 1. 获取读音 (Jisho)
+            try {
+                const res = await fetch(`https://jisho.org/api/v1/search/words?keyword=${word}`);
+                const data = await res.json();
+                currentReading = data.data.length > 0 ? (data.data[0].japanese[0].reading || "") : "未知";
+                document.getElementById('p-reading').textContent = `假名: ${currentReading}`;
+            } catch(e) { document.getElementById('p-reading').textContent = "无法获取读音"; }
+
+            // 2. 获取中文 (Google Translate API 快捷版)
+            try {
+                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=zh-CN&dt=t&q=${encodeURI(word)}`);
+                const data = await res.json();
+                currentCn = data[0][0][0];
+                document.getElementById('p-cn').textContent = `中文: ${currentCn}`;
+            } catch(e) { document.getElementById('p-cn').textContent = "翻译失败"; }
+        }
+
+        function saveFromPanel() {
             let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            if(!list.find(item => item.word === word)) {
-                list.push({ word, context: context.substring(0, 30) + "..." });
+            if(!list.find(item => item.word === currentWord)) {
+                list.push({ word: currentWord, reading: currentReading, cn: currentCn, context: currentContext });
                 localStorage.setItem('myVocab', JSON.stringify(list));
                 renderList();
             }
-        }
-
-        function removeWord(word) {
-            let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            list = list.filter(item => item.word !== word);
-            localStorage.setItem('myVocab', JSON.stringify(list));
-            renderList();
+            document.getElementById('panel').classList.add('hidden');
         }
 
         function renderList() {
             const list = document.getElementById('vocab-list');
             const items = JSON.parse(localStorage.getItem('myVocab') || '[]');
             list.innerHTML = items.map(item => `
-                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg border-l-4 border-green-700 group">
-                    <div>
-                        <a href="https://ejje.weblio.jp/content/${item.word}" target="_blank" class="font-bold text-green-800 hover:underline">${item.word}</a>
-                        <div class="text-[10px] text-slate-400 mt-1">${item.context}</div>
-                    </div>
-                    <button onclick="removeWord('${item.word}')" class="text-slate-300 hover:text-red-500 font-bold px-2">✕</button>
+                <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-green-700">
+                    <div class="font-bold text-green-800">${item.word} <span class="text-xs text-gray-400">${item.reading}</span></div>
+                    <div class="text-xs text-gray-600">${item.cn}</div>
+                    <div class="text-[10px] text-gray-400 mt-1">${item.context}</div>
                 </div>
             `).join('');
+        }
+
+        function exportCSV() {
+            let items = JSON.parse(localStorage.getItem('myVocab') || '[]');
+            let csv = "单词,假名,中文,原文\n" + items.map(i => `"${i.word}","${i.reading}","${i.cn}","${i.context}"`).join('\n');
+            let blob = new Blob(["\ufeff", csv], {type: 'text/csv'});
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = "生词本.csv";
+            a.click();
         }
 
         function clearAll() { localStorage.removeItem('myVocab'); renderList(); }
