@@ -25,7 +25,7 @@
             <div id="output" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm bg-white text-slate-700 text-base leading-relaxed min-h-[200px]">输入文本并点击处理...</div>
         </main>
         <aside class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[600px]">
-            <h2 class="font-bold text-lg mb-4">📖 生词本 (含上下文)</h2>
+            <h2 class="font-bold text-lg mb-4">📖 生词本</h2>
             <div id="vocab-list" class="flex-1 overflow-y-auto space-y-3 text-sm"></div>
             <button onclick="clearAll()" class="mt-4 w-full text-red-400 text-xs">全部清空</button>
         </aside>
@@ -36,15 +36,22 @@
             const text = document.getElementById('input').value;
             const output = document.getElementById('output');
             output.innerHTML = "";
-            const words = text.split(/([ \n\r\t,，。！？])/).filter(w => w.trim().length > 0);
             
-            words.forEach(w => {
+            // 使用更精细的分词逻辑：将文本按字符拆分并处理
+            // 如果是日语汉字/假名，作为一个词显示
+            const segments = text.split(/([ \n\r\t,，。！？])/).filter(w => w.trim().length > 0);
+            
+            segments.forEach(segment => {
                 const span = document.createElement('span');
-                span.className = "cursor-pointer p-1 rounded hover:bg-green-100";
-                span.textContent = w;
+                span.className = "cursor-pointer p-1 rounded hover:bg-green-100 transition";
+                span.textContent = segment;
                 span.onclick = () => {
                     span.classList.toggle('word-active');
-                    if(span.classList.contains('word-active')) saveWord(w, text);
+                    if(span.classList.contains('word-active')) {
+                        saveWord(segment, text);
+                    } else {
+                        removeWord(segment);
+                    }
                 };
                 output.appendChild(span);
             });
@@ -53,9 +60,16 @@
         function saveWord(word, context) {
             let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
             if(!list.find(item => item.word === word)) {
-                list.push({ word, context: context.substring(0, 50) + "..." });
+                list.push({ word, context: context.substring(0, 30) + "..." });
                 localStorage.setItem('myVocab', JSON.stringify(list));
+                renderList();
             }
+        }
+
+        function removeWord(word) {
+            let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
+            list = list.filter(item => item.word !== word);
+            localStorage.setItem('myVocab', JSON.stringify(list));
             renderList();
         }
 
@@ -63,9 +77,12 @@
             const list = document.getElementById('vocab-list');
             const items = JSON.parse(localStorage.getItem('myVocab') || '[]');
             list.innerHTML = items.map(item => `
-                <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-green-700">
-                    <a href="https://ejje.weblio.jp/content/${item.word}" target="_blank" class="font-bold text-green-800 hover:underline">${item.word}</a>
-                    <div class="text-[10px] text-slate-400 mt-1">${item.context}</div>
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg border-l-4 border-green-700 group">
+                    <div>
+                        <a href="https://ejje.weblio.jp/content/${item.word}" target="_blank" class="font-bold text-green-800 hover:underline">${item.word}</a>
+                        <div class="text-[10px] text-slate-400 mt-1">${item.context}</div>
+                    </div>
+                    <button onclick="removeWord('${item.word}')" class="text-slate-300 hover:text-red-500 font-bold px-2">✕</button>
                 </div>
             `).join('');
         }
