@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Japanese Furigana Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
+    <script src="https://unpkg.com/wanakana"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #F9F7E8; color: #4E342E; }
+        .word-active { background-color: #FFF9C4 !important; border-bottom: 2px solid #558B2F; }
+        ruby rt { color: #8D6E63; font-size: 0.7rem; pointer-events: none; }
+        .avocado-btn { background-color: #558B2F; transition: 0.3s; }
+        .avocado-btn:hover { background-color: #3E6722; }
+    </style>
+</head>
+<body class="p-6 md:p-10 font-sans">
+
+    <header class="max-w-4xl mx-auto flex justify-between items-center mb-8">
+        <h1 class="text-2xl font-bold flex items-center gap-2">
+            <img src="avocadologo.png" class="w-10 h-10"> Japanese Furigana Generator
+        </h1>
+        <select id="lang-select" class="bg-white border rounded p-1 text-sm outline-none">
+            <option value="zh">中文</option><option value="en">English</option>
+            <option value="id">Indonesian</option><option value="ko">한국어</option>
+            <option value="vi">Tiếng Việt</option>
+        </select>
+    </header>
+
+    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+        <main class="md:col-span-2 space-y-6">
+            <textarea id="input" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm outline-none focus:border-green-700 text-base" rows="6" placeholder="粘贴日语文本..."></textarea>
+            <button id="btn" class="avocado-btn w-full text-white py-4 rounded-xl font-bold text-lg">开始解析</button>
+            
+            <div id="output" class="w-full p-6 border-2 border-slate-200 rounded-2xl shadow-sm bg-white text-slate-500 text-base leading-relaxed min-h-[200px]">输出结果...</div>
+            
+            <a href="https://h5xjhwnvwx.feishu.cn/share/base/form/shrcnLbIhhb5HsCkhNOJJtBmS7d" 
+               target="_blank" 
+               class="text-xs text-slate-500 hover:underline">
+               报告标注错误 (Report Error)
+            </a>
+        </main>
+
+        <aside class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[600px]">
+            <h2 id="vocab-title" class="font-bold text-lg mb-4">📖 生词本</h2>
+            <div id="vocab-list" class="flex-1 overflow-y-auto space-y-2 text-sm"></div>
+            <div class="mt-4 pt-4 border-t space-y-2">
+                <button id="export-btn" onclick="exportAnki()" class="w-full bg-slate-800 text-white py-2 rounded-lg text-sm">生词本导出</button>
+                <button id="clear-btn" onclick="clearAll()" class="w-full text-red-400 text-xs">全部清空</button>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        const trans = {
+            zh: { btn: "开始解析", title: "生词本", exp: "生词本导出", clr: "全部清空", ph: "粘贴日语文本...", out: "输出结果..." },
+            en: { btn: "Start Analysis", title: "Vocabulary", exp: "Export Vocabulary", clr: "Clear All", ph: "Paste Japanese text...", out: "Analysis result..." },
+            id: { btn: "Mulai Analisis", title: "Kosakata", exp: "Ekspor Kosakata", clr: "Hapus Semua", ph: "Tempel teks Jepang...", out: "Hasil analisis..." },
+            ko: { btn: "분석 시작", title: "단어장", exp: "단어장 내보내기", clr: "모두 지우기", ph: "일본어 텍스트를 붙여넣으세요...", out: "분석 결과..." },
+            vi: { btn: "Bắt đầu phân tích", title: "Từ vựng", exp: "Xuất từ vựng", clr: "Xóa tất cả", ph: "Dán văn bản tiếng Nhật...", out: "Kết quả phân tích..." }
+        };
+
+        let tokenizer;
+        kuromoji.builder({ dicPath: "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/" }).build((err, t) => { tokenizer = t; });
+
+        document.getElementById('lang-select').onchange = (e) => {
+            const t = trans[e.target.value];
+            document.getElementById('btn').textContent = t.btn;
+            document.getElementById('vocab-title').textContent = t.title;
+            document.getElementById('export-btn').textContent = t.exp;
+            document.getElementById('clear-btn').textContent = t.clr;
+            document.getElementById('input').placeholder = t.ph;
+            const outDiv = document.getElementById('output');
+            if(outDiv.textContent.includes("...") || outDiv.textContent.length < 15) outDiv.textContent = t.out;
+        };
+
+        function toggleWord(word, reading, element) {
+            let words = JSON.parse(localStorage.getItem('myVocab') || '[]');
+            const index = words.findIndex(w => w.word === word);
+            if (index === -1) { words.push({ word, reading }); element.classList.add('word-active'); } 
+            else { words.splice(index, 1); element.classList.remove('word-active'); }
+            localStorage.setItem('myVocab', JSON.stringify(words));
+            updateList();
+        }
+
+        function updateList() {
+            const list = document.getElementById('vocab-list');
+            const words = JSON.parse(localStorage.getItem('myVocab') || '[]');
+            list.innerHTML = words.map(w => `
+                <div class="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
+                    <span>${w.word} <span class="text-slate-400 text-xs">(${w.reading})</span></span>
+                    <button onclick="removeWord('${w.word}')" class="text-red-400 hover:text-red-600">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function removeWord(word) {
+            let words = JSON.parse(localStorage.getItem('myVocab') || '[]');
+            words = words.filter(w => w.word !== word);
+            localStorage.setItem('myVocab', JSON.stringify(words));
+            updateList();
+            document.querySelectorAll('.word-active').forEach(el => { if(el.innerText.includes(word)) el.classList.remove('word-active'); });
+        }
+
+        function clearAll() { localStorage.removeItem('myVocab'); updateList(); document.querySelectorAll('.word-active').forEach(el => el.classList.remove('word-active')); }
+
+        function exportAnki() {
+            let words = JSON.parse(localStorage.getItem('myVocab') || '[]');
+            let csv = words.map(w => `${w.word},${w.reading}`).join('\n');
+            let a = document.createElement('a');
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+            a.download = "单词本导出.csv";
+            a.click();
+        }
+
+        document.getElementById('btn').onclick = () => {
+            const path = tokenizer.tokenize(document.getElementById('input').value);
+            const output = document.getElementById('output');
+            output.innerHTML = "";
+            output.style.color = "#4E342E";
+            const needsRuby = (str) => /[\u4e00-\u9fa5\u30a0-\u30ff]/.test(str);
+            
+            path.forEach(token => {
+                if (token.pos === '補助記号') return;
+                const span = document.createElement('span');
+                const reading = wanakana.toHiragana(token.reading || '');
+                span.className = "cursor-pointer p-1 rounded inline-block transition hover:bg-green-100";
+                span.innerHTML = needsRuby(token.surface_form) ? `<ruby>${token.surface_form}<rt>${reading}</rt></ruby>` : token.surface_form;
+                span.onclick = () => toggleWord(token.surface_form, reading, span);
+                output.appendChild(span);
+            });
+        };
+        updateList();
+    </script>
+</body>
+</html>
