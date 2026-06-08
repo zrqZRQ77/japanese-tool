@@ -1,9 +1,8 @@
-// worker.js - 在后台线程加载 kuromoji，不阻塞主页面
 importScripts('https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js');
 
 let tokenizer = null;
 
-kuromoji.builder({ dicPath: 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/' })
+kuromoji.builder({ dicPath: 'https://unpkg.com/kuromoji@0.1.2/dict/' })
   .build((err, t) => {
     if (err) {
       postMessage({ type: 'error', message: err.message });
