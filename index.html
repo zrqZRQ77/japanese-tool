@@ -28,7 +28,7 @@
             <h2 class="font-bold text-lg mb-4">📖 生词本</h2>
             <div id="vocab-list" class="flex-1 overflow-y-auto space-y-3 text-sm"></div>
             <div class="pt-4 border-t space-y-2">
-                <button onclick="exportCSV()" class="w-full bg-slate-800 text-white py-2 rounded-lg text-sm">导出 CSV (Anki)</button>
+                <button onclick="exportCSV()" class="w-full bg-slate-800 text-white py-2 rounded-lg text-sm">导出生词本</button>
                 <button onclick="clearAll()" class="w-full text-red-400 text-xs">全部清空</button>
             </div>
         </aside>
@@ -36,6 +36,7 @@
 
     <div id="panel" class="fixed top-20 right-10 w-80 p-5 bg-white shadow-2xl rounded-2xl border border-green-200 z-50 hidden">
         <h3 id="p-word" class="font-bold text-xl text-green-800"></h3>
+        <button onclick="speakWord()" class="text-xs text-blue-500 hover:underline">🔊 播放读音</button>
         <p id="p-reading" class="text-sm text-gray-500 mb-2"></p>
         <p id="p-cn" class="text-sm mb-4 border-t pt-2"></p>
         <div class="flex gap-2">
@@ -48,14 +49,18 @@
         let currentWord = "";
         let currentReading = "";
         let currentCn = "";
-        let currentContext = "";
+
+        // 正则分词逻辑
+        function segmentText(text) {
+            const p = /([はがをにへとへでもからまで、。！？])/g;
+            return text.replace(p, ' $1 ').split(/\s+/).filter(w => w.length > 0);
+        }
 
         document.getElementById('btn').onclick = () => {
             const text = document.getElementById('input').value;
             const output = document.getElementById('output');
             output.innerHTML = "";
-            const segments = text.split(/([ \n\r\t,，。！？])/).filter(w => w.trim().length > 0);
-            
+            const segments = segmentText(text);
             segments.forEach(seg => {
                 const span = document.createElement('span');
                 span.className = "cursor-pointer p-1 rounded hover:bg-green-100 transition";
@@ -65,28 +70,29 @@
             });
         };
 
+        // 语音播放功能
+        function speakWord() {
+            const msg = new SpeechSynthesisUtterance(currentWord);
+            msg.lang = 'ja-JP';
+            window.speechSynthesis.speak(msg);
+        }
+
         async function showPanel(word, context) {
             currentWord = word;
-            currentContext = context.substring(0, 30) + "...";
-            const panel = document.getElementById('panel');
             document.getElementById('p-word').textContent = word;
             document.getElementById('p-reading').textContent = "加载中...";
-            document.getElementById('p-cn').textContent = "翻译中...";
-            panel.classList.remove('hidden');
-
-            // 1. 获取读音 (Jisho)
+            document.getElementById('panel').classList.remove('hidden');
+            
+            // 查词逻辑
             try {
                 const res = await fetch(`https://jisho.org/api/v1/search/words?keyword=${word}`);
                 const data = await res.json();
                 currentReading = data.data.length > 0 ? (data.data[0].japanese[0].reading || "") : "未知";
                 document.getElementById('p-reading').textContent = `假名: ${currentReading}`;
-            } catch(e) { document.getElementById('p-reading').textContent = "无法获取读音"; }
-
-            // 2. 获取中文 (Google Translate API 快捷版)
-            try {
-                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=zh-CN&dt=t&q=${encodeURI(word)}`);
-                const data = await res.json();
-                currentCn = data[0][0][0];
+                
+                const tr = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=zh-CN&dt=t&q=${encodeURI(word)}`);
+                const trD = await tr.json();
+                currentCn = trD[0][0][0];
                 document.getElementById('p-cn').textContent = `中文: ${currentCn}`;
             } catch(e) { document.getElementById('p-cn').textContent = "翻译失败"; }
         }
@@ -94,7 +100,7 @@
         function saveFromPanel() {
             let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
             if(!list.find(item => item.word === currentWord)) {
-                list.push({ word: currentWord, reading: currentReading, cn: currentCn, context: currentContext });
+                list.push({ word: currentWord, reading: currentReading, cn: currentCn });
                 localStorage.setItem('myVocab', JSON.stringify(list));
                 renderList();
             }
@@ -104,21 +110,29 @@
         function renderList() {
             const list = document.getElementById('vocab-list');
             const items = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            list.innerHTML = items.map(item => `
-                <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-green-700">
-                    <div class="font-bold text-green-800">${item.word} <span class="text-xs text-gray-400">${item.reading}</span></div>
-                    <div class="text-xs text-gray-600">${item.cn}</div>
-                    <div class="text-[10px] text-gray-400 mt-1">${item.context}</div>
+            list.innerHTML = items.map(i => `
+                <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-green-700 flex justify-between">
+                    <div>
+                        <div class="font-bold text-green-800">${i.word} <span class="text-xs text-gray-400">${i.reading}</span></div>
+                        <div class="text-xs text-gray-600">${i.cn}</div>
+                    </div>
+                    <button onclick="removeWord('${i.word}')" class="text-red-400 px-2">✕</button>
                 </div>
             `).join('');
         }
 
+        function removeWord(word) {
+            let list = JSON.parse(localStorage.getItem('myVocab') || '[]');
+            list = list.filter(i => i.word !== word);
+            localStorage.setItem('myVocab', JSON.stringify(list));
+            renderList();
+        }
+
         function exportCSV() {
             let items = JSON.parse(localStorage.getItem('myVocab') || '[]');
-            let csv = "单词,假名,中文,原文\n" + items.map(i => `"${i.word}","${i.reading}","${i.cn}","${i.context}"`).join('\n');
-            let blob = new Blob(["\ufeff", csv], {type: 'text/csv'});
+            let csv = "单词,假名,中文\n" + items.map(i => `"${i.word}","${i.reading}","${i.cn}"`).join('\n');
             let a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
+            a.href = URL.createObjectURL(new Blob(["\ufeff", csv], {type: 'text/csv'}));
             a.download = "生词本.csv";
             a.click();
         }
