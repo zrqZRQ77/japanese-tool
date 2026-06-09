@@ -2,11 +2,11 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title id="siteTitle">Japanese Reader - 日语划词阅读工作台</title>
-    <meta name="description" id="siteDesc" content="高效的日语阅读工具，支持划词查词、生词本导出及整句翻译对比，助力日语学习。">
-    <meta name="keywords" content="Japanese Reader,日语学习,日语划词,生词本,日语翻译,Japanese learning tools">
-    <meta property="og:title" content="Japanese Reader">
-    <meta property="og:description" content="沉浸式日语阅读与查词工作台。">
+    <title id="siteTitle">Japanese Hub - 日语学习工作台</title>
+    <meta name="description" id="siteDesc" content="Japanese Hub 提供沉浸式日语划词阅读、智能生词本管理及考试资料学习，助力您的日语进阶之路。">
+    <meta name="keywords" content="Japanese Hub,日语学习,日语阅读,日语查词,JLPT,日语生词本">
+    <meta property="og:title" content="Japanese Hub">
+    <meta property="og:description" content="专业、高效的日语学习与阅读平台。">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -20,13 +20,21 @@
 <body class="p-6 md:p-10">
     <main class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8">
         <div class="md:col-span-8 space-y-6">
-            <h1 class="text-3xl font-bold flex items-center gap-3 text-[#558B2F]">
-                <img src="avocadologo.png" class="w-12 h-12" alt="Logo"> Japanese Reader
-            </h1>
+            <header class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold flex items-center gap-3 text-[#558B2F]">
+                    <img src="./avocadologo.png" class="w-12 h-12" alt="Logo"> Japanese Hub
+                </h1>
+                <nav class="space-x-4 text-sm font-bold text-[#558B2F]">
+                    <a href="/" class="hover:underline">阅读工具</a>
+                    <a href="/about.html" class="hover:underline">关于我们</a>
+                </nav>
+            </header>
+
             <div id="editorMode" class="space-y-4">
                 <textarea id="input" class="w-full p-8 rounded-3xl border-none shadow-inner bg-[#F4EDE8] outline-none min-h-[400px] text-lg" placeholder="粘贴日语文章..."></textarea>
                 <button id="btnStart" onclick="startReading()" class="btn-avocado w-full py-4 rounded-2xl font-bold text-lg">开始阅读</button>
             </div>
+            
             <div id="readerMode" class="hidden relative">
                 <div id="textDisplay" class="w-full p-10 rounded-3xl avocado-card min-h-[400px] text-lg leading-loose" onmouseup="handleSelection()"></div>
                 <button id="btnEdit" onclick="switchToEdit()" class="absolute top-4 right-6 px-4 py-1 bg-gray-100 rounded-lg text-xs hover:bg-gray-200 text-gray-600">重新输入编辑</button>
@@ -68,19 +76,17 @@
 
     <script>
         const i18n = {
-            'zh-CN': { title: 'Japanese Reader - 日语阅读工作台', desc: '高效的日语阅读与查词工具', input: '粘贴日语文章...', start: '开始阅读', vocab: '📖 生词本', export: '导出生词本', clear: '清空', feedback: '建议与反馈', save: '收藏', close: '关闭', edit: '重新输入编辑' },
-            'en': { title: 'Japanese Reader - Reading Workspace', desc: 'Efficient Japanese reading and vocabulary tool', input: 'Paste Japanese text...', start: 'Start Reading', vocab: '📖 Vocabulary', export: 'Export List', clear: 'Clear', feedback: 'Feedback', save: 'Save', close: 'Close', edit: 'Edit Text' },
-            'ko': { title: 'Japanese Reader - 일본어 읽기 작업대', desc: '효율적인 일본어 읽기 및 단어장 도구', input: '일본어 텍스트를 붙여넣으세요...', start: '읽기 시작', vocab: '📖 단어장', export: '단어장 내보내기', clear: '지우기', feedback: '피드백', save: '저장', close: '닫기', edit: '다시 편집' },
-            'id': { title: 'Japanese Reader - Alat Membaca Bahasa Jepang', desc: 'Alat membaca dan kosa kata bahasa Jepang yang efisien', input: 'Tempel teks bahasa Jepang...', start: 'Mulai Membaca', vocab: '📖 Daftar Kata', export: 'Ekspor Daftar', clear: 'Hapus', feedback: 'Saran & Masukan', save: 'Simpan', close: 'Tutup', edit: 'Edit Ulang' }
+            'zh-CN': { title: 'Japanese Hub - 日语阅读与查词工作台', desc: 'Japanese Hub 是高效的日语学习平台，提供划词阅读、智能生词本及日语资料库。', input: '粘贴日语文章...', start: '开始阅读', vocab: '📖 生词本', export: '导出生词本', clear: '清空', feedback: '建议与反馈', save: '收藏', close: '关闭', edit: '重新输入编辑' },
+            'en': { title: 'Japanese Hub - Japanese Reading Workspace', desc: 'Japanese Hub provides immersive reading, vocabulary management, and exam preparation resources.', input: 'Paste Japanese text...', start: 'Start Reading', vocab: '📖 Vocabulary', export: 'Export List', clear: 'Clear', feedback: 'Feedback', save: 'Save', close: 'Close', edit: 'Edit Text' },
+            'ko': { title: 'Japanese Hub - 일본어 읽기 작업대', desc: '효율적인 일본어 읽기 및 단어장, 시험 자료 플랫폼입니다.', input: '일본어 텍스트를 붙여넣으세요...', start: '읽기 시작', vocab: '📖 단어장', export: '단어장 내보내기', clear: '지우기', feedback: '피드백', save: '저장', close: '닫기', edit: '다시 편집' },
+            'id': { title: 'Japanese Hub - Alat Belajar Bahasa Jepang', desc: 'Platform belajar bahasa Jepang dengan alat baca, kosakata, dan materi ujian.', input: 'Tempel teks bahasa Jepang...', start: 'Mulai Membaca', vocab: '📖 Daftar Kata', export: 'Ekspor Daftar', clear: 'Hapus', feedback: 'Saran & Masukan', save: 'Simpan', close: 'Tutup', edit: 'Edit Ulang' }
         };
 
         function updateUI() {
             const lang = document.getElementById('globalLang').value;
             const t = i18n[lang];
-            // 更新 SEO meta
             document.title = t.title;
             document.getElementById('siteDesc').content = t.desc;
-            // 更新界面
             document.getElementById('input').placeholder = t.input;
             document.getElementById('btnStart').textContent = t.start;
             document.getElementById('vocabTitle').textContent = t.vocab;
@@ -92,20 +98,10 @@
             document.getElementById('btnEdit').textContent = t.edit;
         }
 
-        // ... 其余逻辑保持不变
+        // 核心逻辑已适配新路径
         function startReading() { const text = document.getElementById('input').value; if(!text) return; document.getElementById('textDisplay').textContent = text; document.getElementById('editorMode').classList.add('hidden'); document.getElementById('readerMode').classList.remove('hidden'); }
         function switchToEdit() { document.getElementById('editorMode').classList.remove('hidden'); document.getElementById('readerMode').classList.add('hidden'); }
-        async function handleSelection() {
-            const text = window.getSelection().toString().trim();
-            if (text.length > 0) {
-                const lang = document.getElementById('globalLang').value;
-                document.getElementById('p-word').textContent = text;
-                document.getElementById('panel').classList.remove('hidden');
-                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=${lang}&dt=t&q=${encodeURI(text)}`);
-                const data = await res.json();
-                document.getElementById('p-cn').textContent = data[0][0][0];
-            }
-        }
+        async function handleSelection() { const text = window.getSelection().toString().trim(); if (text.length > 0) { const lang = document.getElementById('globalLang').value; document.getElementById('p-word').textContent = text; document.getElementById('panel').classList.remove('hidden'); const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=${lang}&dt=t&q=${encodeURI(text)}`); const data = await res.json(); document.getElementById('p-cn').textContent = data[0][0][0]; } }
         function saveWord() { const lang = document.getElementById('globalLang').value; const word = document.getElementById('p-word').textContent; const def = document.getElementById('p-cn').textContent; let list = JSON.parse(localStorage.getItem('myVocab') || '[]'); if(!list.find(i => i.word === word && i.lang === lang)) { list.push({ word, cn: def, lang }); localStorage.setItem('myVocab', JSON.stringify(list)); renderList(); } document.getElementById('panel').classList.add('hidden'); }
         function renderList() { const list = document.getElementById('vocab-list'); const items = JSON.parse(localStorage.getItem('myVocab') || '[]'); list.innerHTML = items.map(i => `<div class="p-3 bg-[#F8F5F0] rounded-xl flex justify-between"><div><div class="font-bold text-sm text-[#558B2F]">${i.word}</div><div class="text-xs text-gray-500 truncate w-32">${i.cn} (${i.lang})</div></div><button onclick="removeWord('${i.word}', '${i.lang}')" class="text-gray-300 hover:text-red-400">✕</button></div>`).join(''); }
         function removeWord(word, lang) { let list = JSON.parse(localStorage.getItem('myVocab') || '[]'); list = list.filter(i => !(i.word === word && i.lang === lang)); localStorage.setItem('myVocab', JSON.stringify(list)); renderList(); }
