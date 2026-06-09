@@ -63,10 +63,28 @@
         </aside>
     </main>
 
+    <div id="panel" class="fixed top-20 right-10 w-80 p-6 avocado-card rounded-3xl z-50 hidden">
+        <h3 id="p-word" class="font-bold text-2xl mb-2 text-[#558B2F]"></h3>
+        <p id="p-cn" class="text-sm text-gray-600 mb-6 italic">読み込み中...</p>
+        <button id="btnSave" onclick="saveWord()" class="btn-avocado w-full py-3 rounded-xl font-bold">保存</button>
+        <button id="btnClose" onclick="document.getElementById('panel').classList.add('hidden')" class="w-full mt-2 py-2 text-gray-400 text-sm">閉じる</button>
+    </div>
+
     <footer class="mt-12 text-center text-gray-500 text-sm space-y-2 pb-6">
         <p>© 2026 Japanese Hub. <a href="/about.html" class="hover:text-[#558B2F] underline">運営者情報</a></p>
         <p>お問い合わせ: <a href="mailto:contact@japanese-hub.com" class="hover:text-[#558B2F] underline">contact@japanese-hub.com</a></p>
     </footer>
-    <script>/* (你的逻辑代码保持不变) */</script>
+
+    <script>
+        function startReading() { const text = document.getElementById('input').value; if(!text) return; document.getElementById('textDisplay').textContent = text; document.getElementById('editorMode').classList.add('hidden'); document.getElementById('readerMode').classList.remove('hidden'); }
+        function switchToEdit() { document.getElementById('editorMode').classList.remove('hidden'); document.getElementById('readerMode').classList.add('hidden'); }
+        async function handleSelection() { const text = window.getSelection().toString().trim(); if (text.length > 0) { const lang = document.getElementById('globalLang').value; document.getElementById('p-word').textContent = text; document.getElementById('panel').classList.remove('hidden'); const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=${lang}&dt=t&q=${encodeURI(text)}`); const data = await res.json(); document.getElementById('p-cn').textContent = data[0][0][0]; } }
+        function saveWord() { const word = document.getElementById('p-word').textContent; const def = document.getElementById('p-cn').textContent; let list = JSON.parse(localStorage.getItem('myVocab') || '[]'); if(!list.find(i => i.word === word)) { list.push({ word, cn: def }); localStorage.setItem('myVocab', JSON.stringify(list)); renderList(); } document.getElementById('panel').classList.add('hidden'); }
+        function renderList() { const list = document.getElementById('vocab-list'); const items = JSON.parse(localStorage.getItem('myVocab') || '[]'); list.innerHTML = items.map(i => `<div class="p-3 bg-[#F8F5F0] rounded-xl flex justify-between"><div><div class="font-bold text-sm text-[#558B2F]">${i.word}</div><div class="text-xs text-gray-500">${i.cn}</div></div><button onclick="removeWord('${i.word}')" class="text-gray-300 hover:text-red-400">✕</button></div>`).join(''); }
+        function removeWord(word) { let list = JSON.parse(localStorage.getItem('myVocab') || '[]'); list = list.filter(i => i.word !== word); localStorage.setItem('myVocab', JSON.stringify(list)); renderList(); }
+        function exportCSV() { let items = JSON.parse(localStorage.getItem('myVocab') || '[]'); let csv = "単語,意味\n" + items.map(i => `"${i.word}","${i.cn}"`).join('\n'); let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(["\ufeff", csv], {type: 'text/csv'})); a.download = "単語帳.csv"; a.click(); }
+        function clearAll() { localStorage.removeItem('myVocab'); renderList(); }
+        renderList();
+    </script>
 </body>
 </html>
