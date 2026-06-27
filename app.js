@@ -67,6 +67,29 @@ let RUBY_OVERRIDES = {};
 try{ RUBY_OVERRIDES = JSON.parse(localStorage.getItem('reading_ruby_overrides') || '{}'); }catch{}
 let IS_ANNOTATION_EDITING = false;
 let CURRENT_FOOTNOTES = [];
+let READING_HISTORY = [];
+
+const READING_SOURCES = [
+  {level:'N5-N4', title:'NHK NEWS WEB EASY', url:'https://www3.nhk.or.jp/news/easy/', note:'简明新闻，适合入门到初中级。'},
+  {level:'N5-N3', title:'つながるひろがる 日本語でのくらし', url:'https://tsunagarujp.bunka.go.jp/', note:'生活日语场景，适合建立基础表达。'},
+  {level:'N4-N3', title:'やさしい日本語ニュース', url:'https://www3.nhk.or.jp/news/easy/', note:'每天更新，适合做稳定阅读练习。'},
+  {level:'N3-N2', title:'MATCHA 日本語', url:'https://matcha-jp.com/jp', note:'旅游文化文章，词汇相对生活化。'},
+  {level:'N2-N1', title:'Nippon.com 日本語', url:'https://www.nippon.com/ja/', note:'社会文化主题，适合进阶阅读。'},
+  {level:'N1', title:'青空文庫', url:'https://www.aozora.gr.jp/', note:'文学作品，句式和词汇更难。'}
+];
+
+const LEVEL_TEST_QUESTIONS = [
+  {level:'N5', q:'「私は学生です。」的意思是？', options:['我是学生。','我去学校。','这是学校。'], answer:0},
+  {level:'N5', q:'「昨日、パンを食べました。」里「食べました」表示？', options:['吃了','正在吃','想吃'], answer:0},
+  {level:'N4', q:'「雨が降っているので、出かけません。」最自然的理解是？', options:['因为在下雨，所以不出门。','虽然下雨，但要出门。','为了下雨而出门。'], answer:0},
+  {level:'N4', q:'「この本は読みやすいです。」里的「やすい」表示？', options:['容易读','便宜地读','安静地读'], answer:0},
+  {level:'N3', q:'「電車が遅れたため、会議に間に合わなかった。」的重点是？', options:['因为电车晚点，没赶上会议。','为了会议，电车晚点了。','会议结束后电车来了。'], answer:0},
+  {level:'N3', q:'「彼は忙しいにもかかわらず、手伝ってくれた。」里的「にもかかわらず」接近？', options:['尽管如此','正因为如此','如果这样'], answer:0},
+  {level:'N2', q:'「努力したからといって、必ず成功するとは限らない。」的意思是？', options:['即使努力，也不一定成功。','只要努力就一定成功。','因为努力所以不能成功。'], answer:0},
+  {level:'N2', q:'「この問題は専門家でさえ解けない。」里的「でさえ」表示？', options:['连……都','只有……才','为了……'], answer:0},
+  {level:'N1', q:'「彼の発言は、誤解を招きかねない。」里的「かねない」表示？', options:['有可能导致','绝不会导致','已经导致'], answer:0},
+  {level:'N1', q:'「知れば知るほど、奥深さを思い知らされる。」最接近？', options:['越了解，越感到其深奥。','知道以后就忘了。','因为深奥所以不需要了解。'], answer:0}
+];
 
 function setTokenizerStatus(text, state){
   const el = document.getElementById('tokenizerStatus');
@@ -165,7 +188,7 @@ function setImportStatus(message, type = ''){
 
 let pendingImportMeta = null;
 function switchWorkspace(view){
-  if(!['reading','vocab','typing','grammar','retell'].includes(view)) return;
+  if(!['reading','vocab','typing','grammar','retell','discover','history'].includes(view)) return;
   document.body.dataset.view = view;
   document.querySelectorAll('.top-row .workspace-tab').forEach(button=>{
     const isPractice = button.dataset.view === 'retell' && view === 'typing';
@@ -174,6 +197,8 @@ function switchWorkspace(view){
   localStorage.setItem('reading_workspace', view);
   if(view === 'typing') renderTypingPractice();
   if(view === 'retell') refreshRetellAdvice();
+  if(view === 'discover'){ renderSourceDirectory(); renderLevelTest(); }
+  if(view === 'history') renderReadingHistory();
 }
 
 function openImportPreview(text, meta = {}){
@@ -580,10 +605,12 @@ async function renderText(){
     const tokenizer = await initKuromoji();
     if(tokenizer){
       renderWithKuromoji(raw, tokenizer, out, statsBar);
+      saveCurrentArticleToHistory();
       return;
     }
   }
   renderWithDictionary(raw, out, statsBar);
+  saveCurrentArticleToHistory();
 }
 
 function normalizeReadingInput(text){
@@ -2169,6 +2196,21 @@ function updateDueCount(){
 }
 
 // ---------------- 新增：导出与清空功能 ----------------
+function downloadTextFile(filename, content, type = 'text/plain;charset=utf-8;'){
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function todayStamp(){
+  return new Date().toISOString().slice(0, 10).replace(/-/g, '');
+}
 
 // 导出生词本为 CSV (适配 Anki)
 function exportVocabCsv() {
@@ -2186,15 +2228,65 @@ function exportVocabCsv() {
     [v.word, v.reading, v.meaning, v.pos, v.level].map(csvField).join(',')
   ).join("\n");
 
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "读得懂_生词本导出.csv";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  downloadTextFile("读得懂_生词本导出.csv", csvContent, 'text/csv;charset=utf-8;');
+}
+
+function exportAnkiTsv(){
+  if(vocabData.length === 0){
+    alert('生词本是空的，先添加几个词再导出 Anki。');
+    return;
+  }
+  const clean = value => String(value || '').replace(/\t/g, ' ').replace(/\r?\n/g, '<br>');
+  const lines = vocabData.map(v => [
+    clean(v.word),
+    clean(v.reading),
+    clean(v.meaning),
+    clean(v.pos),
+    clean(v.level),
+    clean(v.sourceTitle || '')
+  ].join('\t'));
+  const header = '# 正面\t假名\t释义\t词性\t等级\t来源\n';
+  downloadTextFile(`dokedo-anki-${todayStamp()}.tsv`, header + lines.join('\n'), 'text/tab-separated-values;charset=utf-8;');
+}
+
+function exportLearningBackup(){
+  const backup = {
+    app:'dokedo-japanese-reader',
+    version:1,
+    exportedAt:new Date().toISOString(),
+    vocab:vocabData,
+    history:READING_HISTORY,
+    rubyOverrides:RUBY_OVERRIDES,
+    preferredVoice:localStorage.getItem('reading_tts_voice') || '',
+    workspace:localStorage.getItem('reading_workspace') || 'reading',
+    levelResult:localStorage.getItem('reading_level_result') || ''
+  };
+  downloadTextFile(`dokedo-backup-${todayStamp()}.json`, JSON.stringify(backup, null, 2), 'application/json;charset=utf-8;');
+}
+
+async function importLearningBackup(file){
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if(!data || data.app !== 'dokedo-japanese-reader') throw new Error('这不是有效的读得懂备份文件。');
+    vocabData = Array.isArray(data.vocab) ? data.vocab : [];
+    READING_HISTORY = Array.isArray(data.history) ? data.history.slice(0, 50) : [];
+    RUBY_OVERRIDES = data.rubyOverrides && typeof data.rubyOverrides === 'object' ? data.rubyOverrides : {};
+    localStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
+    if(data.preferredVoice) localStorage.setItem('reading_tts_voice', data.preferredVoice);
+    if(data.levelResult) localStorage.setItem('reading_level_result', data.levelResult);
+    await saveVocab();
+    saveReadingHistory();
+    renderVocab();
+    renderReadingHistory();
+    alert('备份已恢复。');
+  }catch(error){
+    alert(error.message || '备份恢复失败。');
+  }finally{
+    const input = document.getElementById('backupFileInput');
+    if(input) input.value = '';
+  }
 }
 
 // 一键清空生词本
@@ -2295,6 +2387,168 @@ function rateCard(rating){
 
 loadVocab();
 
+// ---------------- 阅读历史、推荐来源、水平测试 ----------------
+function loadReadingHistory(){
+  try{ READING_HISTORY = JSON.parse(localStorage.getItem('reading_history') || '[]'); }
+  catch{ READING_HISTORY = []; }
+}
+
+function saveReadingHistory(){
+  localStorage.setItem('reading_history', JSON.stringify(READING_HISTORY.slice(0, 50)));
+}
+
+function articleTitleFromText(text){
+  const firstLine = String(text || '').split('\n').map(v=>v.trim()).find(Boolean) || '未命名文章';
+  return firstLine.length > 34 ? firstLine.slice(0, 34) + '…' : firstLine;
+}
+
+function saveCurrentArticleToHistory(){
+  const text = CURRENT_ARTICLE_TEXT.trim();
+  const output = document.getElementById('output');
+  if(!text || !output) return;
+  const compact = text.replace(/\s+/g, '');
+  const existingIndex = READING_HISTORY.findIndex(item => item.fingerprint === compact.slice(0, 180));
+  const item = {
+    id: Date.now(),
+    title: articleTitleFromText(text),
+    source:'手动导入',
+    date:new Date().toISOString(),
+    chars:text.length,
+    text,
+    annotatedHtml:output.innerHTML,
+    fingerprint:compact.slice(0, 180)
+  };
+  if(existingIndex >= 0) READING_HISTORY.splice(existingIndex, 1);
+  READING_HISTORY.unshift(item);
+  READING_HISTORY = READING_HISTORY.slice(0, 50);
+  saveReadingHistory();
+}
+
+function renderReadingHistory(){
+  const list = document.getElementById('historyList');
+  if(!list) return;
+  const keyword = (document.getElementById('historySearch')?.value || '').trim().toLowerCase();
+  const filtered = READING_HISTORY.filter(item => {
+    const haystack = `${item.title} ${item.source} ${item.text}`.toLowerCase();
+    return !keyword || haystack.includes(keyword);
+  });
+  if(!filtered.length){
+    list.innerHTML = '<div class="history-empty">还没有阅读历史。分析一篇文章后，会自动保存在这里。</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(item => `
+    <article class="history-item">
+      <div>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${new Date(item.date).toLocaleString()} · ${Number(item.chars || 0).toLocaleString()} 字</p>
+      </div>
+      <div class="history-actions">
+        <button class="btn-primary" onclick="restoreHistoryArticle(${item.id})">打开</button>
+        <button class="btn-ghost" onclick="removeHistoryArticle(${item.id})">删除</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+function restoreHistoryArticle(id){
+  const item = READING_HISTORY.find(entry => entry.id === id);
+  if(!item) return;
+  document.getElementById('inputText').value = item.text || '';
+  CURRENT_ARTICLE_TEXT = item.text || '';
+  document.getElementById('output').innerHTML = item.annotatedHtml || escapeHtml(item.text || '');
+  setReadingReady(true);
+  setPostAnalysisActionsVisible(true);
+  refreshRetellAdvice();
+  switchWorkspace('reading');
+}
+
+function removeHistoryArticle(id){
+  READING_HISTORY = READING_HISTORY.filter(item => item.id !== id);
+  saveReadingHistory();
+  renderReadingHistory();
+}
+
+function clearReadingHistory(){
+  if(!READING_HISTORY.length) return;
+  if(!confirm('确定要清空阅读历史吗？生词本不会被删除。')) return;
+  READING_HISTORY = [];
+  saveReadingHistory();
+  renderReadingHistory();
+}
+
+function renderSourceDirectory(){
+  const target = document.getElementById('sourceDirectory');
+  if(!target) return;
+  target.innerHTML = READING_SOURCES.map(source => `
+    <article class="source-directory-item">
+      <span>${escapeHtml(source.level)}</span>
+      <h3>${escapeHtml(source.title)}</h3>
+      <p>${escapeHtml(source.note)}</p>
+      <div class="btnrow">
+        <button class="btn-primary" onclick="useSourceUrl('${encodeURIComponent(source.url)}')">复制到阅读页</button>
+        <button class="btn-ghost" onclick="openRecommendedSource('${source.url}')">打开网站</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+function useSourceUrl(encodedUrl){
+  const url = decodeURIComponent(encodedUrl);
+  document.getElementById('inputText').value = url;
+  switchWorkspace('reading');
+  editSourceText();
+  setImportStatus('已填入推荐来源链接。确认是具体文章页后，点击「识别资料」。');
+}
+
+function renderLevelTest(){
+  const target = document.getElementById('levelTest');
+  if(!target || target.dataset.rendered) return;
+  target.dataset.rendered = '1';
+  target.innerHTML = LEVEL_TEST_QUESTIONS.map((item, index) => `
+    <fieldset class="level-question">
+      <legend><span>${escapeHtml(item.level)}</span>${index + 1}. ${escapeHtml(item.q)}</legend>
+      ${item.options.map((option, optionIndex) => `
+        <label><input type="radio" name="level-q-${index}" value="${optionIndex}"> ${escapeHtml(option)}</label>
+      `).join('')}
+    </fieldset>
+  `).join('');
+  const saved = localStorage.getItem('reading_level_result');
+  if(saved) showLevelResult(saved);
+}
+
+function scoreLevelTest(){
+  let score = 0;
+  let answered = 0;
+  LEVEL_TEST_QUESTIONS.forEach((item, index)=>{
+    const checked = document.querySelector(`input[name="level-q-${index}"]:checked`);
+    if(!checked) return;
+    answered += 1;
+    if(Number(checked.value) === item.answer) score += 1;
+  });
+  if(answered < 6){
+    document.getElementById('levelResult').textContent = '至少完成 6 题，结果会更可靠。';
+    return;
+  }
+  const level = score <= 2 ? 'N5-N4' : score <= 4 ? 'N4-N3' : score <= 6 ? 'N3-N2' : score <= 8 ? 'N2' : 'N1';
+  const result = `${level}｜答对 ${score}/${answered} 题`;
+  localStorage.setItem('reading_level_result', result);
+  showLevelResult(result);
+}
+
+function showLevelResult(result){
+  const badge = document.getElementById('levelResultBadge');
+  const box = document.getElementById('levelResult');
+  if(badge) badge.textContent = result.split('｜')[0] || result;
+  if(box) box.innerHTML = `建议从 <b>${escapeHtml(result.split('｜')[0] || result)}</b> 的材料开始。可以先在右侧选择相近等级的来源，再复制到阅读页。<br><span>${escapeHtml(result)}</span>`;
+}
+
+function resetLevelTest(){
+  document.querySelectorAll('#levelTest input[type="radio"]').forEach(input=>input.checked = false);
+  localStorage.removeItem('reading_level_result');
+  document.getElementById('levelResultBadge').textContent = '未测试';
+  document.getElementById('levelResult').textContent = '完成后会推荐适合你的阅读等级和材料入口。';
+}
+
 // ---------------- 语法点词典 ----------------
 let openGrammarTitle = null;
 
@@ -2355,6 +2609,7 @@ function startOnboardingDemo(){
 if(localStorage.getItem('reading_onboarding_dismissed')) dismissOnboarding();
 
 async function initializeApp(){
+  loadReadingHistory();
   try{
     DATA_READY = ensureLearningData();
     await DATA_READY;
@@ -2363,6 +2618,8 @@ async function initializeApp(){
   }
 
   renderGrammar();
+  renderSourceDirectory();
+  renderLevelTest();
   initKuromoji();
   document.getElementById('useKuromoji')?.addEventListener('change', renderText);
 

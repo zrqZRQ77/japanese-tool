@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20260627-4">
+<link rel="stylesheet" href="styles.css?v=20260627-5">
 </head>
 <body data-view="reading">
 <div class="wrap">
@@ -23,6 +23,8 @@
       <button class="workspace-tab active" data-view="reading" onclick="switchWorkspace('reading')">阅读</button>
       <button class="workspace-tab" data-view="vocab" onclick="switchWorkspace('vocab')">复习</button>
       <button class="workspace-tab" data-view="retell" onclick="switchWorkspace('retell')">练习</button>
+      <button class="workspace-tab" data-view="discover" onclick="switchWorkspace('discover')">推荐/测试</button>
+      <button class="workspace-tab" data-view="history" onclick="switchWorkspace('history')">历史</button>
       <button class="workspace-tab" data-view="grammar" onclick="switchWorkspace('grammar')">语法词典</button>
     </nav>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -151,6 +153,7 @@
             <span class="card-title"><span class="tag">生词本</span>已收藏 <span id="vocabCount">0</span> 个</span>
             <div style="display:flex;gap:8px;align-items:center;">
               <button class="btn-ghost" onclick="exportVocabCsv()" style="padding:4px 10px;font-size:12px;">导出生词本</button>
+              <button class="btn-ghost" onclick="exportAnkiTsv()" style="padding:4px 10px;font-size:12px;">导出Anki</button>
               <button class="btn-ghost" onclick="clearAllVocab()" style="padding:4px 10px;font-size:12px;color:var(--trap);border-color:var(--trap);">全部清空</button>
             </div>
           </div>
@@ -172,6 +175,49 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <div class="card discover-section">
+    <div class="card-pad">
+      <div class="card-head"><span class="card-title"><span class="tag">开始</span>推荐阅读与水平测试</span></div>
+      <div class="discover-grid">
+        <section class="tool-panel">
+          <div class="tool-panel-head">
+            <h2>3分钟快速定位水平</h2>
+            <span id="levelResultBadge">未测试</span>
+          </div>
+          <div class="level-test" id="levelTest"></div>
+          <div class="btnrow">
+            <button class="btn-primary" onclick="scoreLevelTest()">查看建议等级</button>
+            <button class="btn-ghost" onclick="resetLevelTest()">重新测试</button>
+          </div>
+          <div class="level-result" id="levelResult">完成后会推荐适合你的阅读等级和材料入口。</div>
+        </section>
+        <section class="tool-panel">
+          <div class="tool-panel-head">
+            <h2>按等级找阅读材料</h2>
+            <span>可复制链接到阅读页</span>
+          </div>
+          <div class="source-directory" id="sourceDirectory"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="card history-section">
+    <div class="card-pad">
+      <div class="card-head">
+        <span class="card-title"><span class="tag">历史</span>最近读过的文章</span>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn-ghost" onclick="exportLearningBackup()" style="padding:4px 10px;font-size:12px;">备份数据</button>
+          <button class="btn-ghost" onclick="document.getElementById('backupFileInput').click()" style="padding:4px 10px;font-size:12px;">恢复备份</button>
+          <button class="btn-ghost" onclick="clearReadingHistory()" style="padding:4px 10px;font-size:12px;color:var(--trap);border-color:var(--trap);">清空历史</button>
+          <input id="backupFileInput" type="file" accept=".json,application/json" hidden onchange="importLearningBackup(this.files[0])">
+        </div>
+      </div>
+      <input class="grammar-search" id="historySearch" placeholder="搜索标题、来源或正文片段……" oninput="renderReadingHistory()">
+      <div class="history-list" id="historyList"></div>
     </div>
   </div>
 
