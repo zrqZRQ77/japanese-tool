@@ -726,7 +726,214 @@ button:active {
   color: var(--sumi);
 }
 
-/* 响应式 */
+/* ===== 弹窗和模态框 ===== */
+.export-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(44, 52, 64, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.export-modal.active {
+  display: flex;
+}
+
+.export-dialog {
+  background: var(--shironeri);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.export-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.export-head strong {
+  font-size: 18px;
+  color: var(--sumi);
+}
+
+.export-body {
+  padding: 24px;
+}
+
+.export-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--ainezumi);
+  padding: 0;
+}
+
+.icon-btn:hover {
+  color: var(--sumi);
+}
+
+/* TTS控制条 */
+.tts-control-bar {
+  position: fixed;
+  bottom: 0;
+  left: 240px;
+  right: 0;
+  background: var(--sumi);
+  color: var(--kinari);
+  padding: 16px 24px;
+  display: none;
+  align-items: center;
+  gap: 16px;
+  z-index: 50;
+}
+
+.tts-control-bar.active {
+  display: flex;
+}
+
+.tts-control-bar button {
+  background: transparent;
+  color: var(--kinari);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tts-control-bar button:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 选中文本工具 */
+.selection-tools {
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  background: var(--shironeri);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 320px;
+  z-index: 50;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.selection-tools.active {
+  display: flex;
+}
+
+.selection-text {
+  font-size: 14px;
+  color: var(--sumi);
+  font-weight: 500;
+}
+
+.selection-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.selection-result {
+  font-size: 13px;
+  color: var(--ainezumi);
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* 导入预览 */
+.import-preview-summary {
+  font-size: 13px;
+  color: var(--ainezumi);
+  margin-bottom: 16px;
+}
+
+.clean-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.export-selects {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.export-select-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sumi);
+  margin-bottom: 8px;
+}
+
+.export-select-shell select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--shironeri);
+  color: var(--sumi);
+  font-size: 14px;
+}
+
+.export-settings {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.export-settings label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: var(--ainezumi);
+}
+
+.export-settings input {
+  margin-top: 4px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.lookup-status {
+  font-size: 13px;
+  color: var(--ainezumi);
+  line-height: 1.6;
+}
+
+.export-status {
+  font-size: 13px;
+  color: var(--ainezumi);
+}
 @media (max-width: 1024px) {
   .app-sidebar {
     transform: translateX(-100%);
