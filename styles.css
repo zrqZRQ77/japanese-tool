@@ -103,6 +103,8 @@ body {
   margin-top: 16px;
   justify-content: center;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 100;
 }
 
 .btn-primary-large {
@@ -171,6 +173,7 @@ body {
 
 /* ===== 首次访问/应用界面切换 ===== */
 body.first-visit .app-interface { display: none !important; }
+body.first-visit .app-sidebar { display: none !important; }
 body:not(.first-visit) .hero-intro { display: none; }
 
 /* ===== 应用界面布局 ===== */
@@ -519,10 +522,17 @@ button {
   border-radius: 4px;
   min-height: 40px;
   transition: opacity 0.2s;
+  position: relative;
+  z-index: 10;
 }
 
 button:active {
   opacity: 0.7;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-primary {
