@@ -1,3 +1,89 @@
+// ===== Hero首屏逻辑 =====
+function analyzeFromHero() {
+  const text = document.getElementById('heroInputText').value.trim();
+  if (!text) {
+    alert('请先粘贴日语文本或文章链接');
+    return;
+  }
+  document.body.classList.remove('first-visit');
+  document.getElementById('inputText').value = text;
+  localStorage.setItem('hasUsedApp', 'true');
+  analyzeSourceInput();
+}
+
+function loadSampleFromHero() {
+  document.body.classList.remove('first-visit');
+  localStorage.setItem('hasUsedApp', 'true');
+  loadSample();
+}
+
+function resetToHero() {
+  if (confirm('返回首页将清空当前内容，确定吗？')) {
+    document.body.classList.add('first-visit');
+    document.getElementById('heroInputText').value = '';
+    document.getElementById('output').innerHTML = '<span style="color:var(--ainezumi);font-size:14.5px;">点击「载入示例」查看效果</span>';
+    document.body.classList.remove('has-reading');
+  }
+}
+
+function showReading() {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// ===== 生词本面板逻辑 =====
+function openVocabPanel() {
+  document.getElementById('vocabPanelSlide').classList.add('active');
+  syncVocabPanelData();
+}
+
+function closeVocabPanel() {
+  document.getElementById('vocabPanelSlide').classList.remove('active');
+}
+
+function syncVocabPanelData() {
+  const vocab = getAllVocab();
+  document.getElementById('vocabCountPanel').textContent = vocab.length;
+  document.getElementById('totalVocabCountPanel').textContent = vocab.length;
+
+  const vocabListPanel = document.getElementById('vocabListPanel');
+  const vocabEmptyPanel = document.getElementById('vocabEmptyPanel');
+
+  if(vocab.length === 0) {
+    vocabListPanel.style.display = 'none';
+    vocabEmptyPanel.style.display = 'block';
+  } else {
+    vocabListPanel.style.display = 'block';
+    vocabEmptyPanel.style.display = 'none';
+    vocabListPanel.innerHTML = vocab.map(v => `
+      <li class="vocab-item">
+        <div class="vocab-word">${v.word}</div>
+        <div class="vocab-meta">${v.reading || ''} · ${v.meaning || ''}</div>
+      </li>
+    `).join('');
+  }
+
+  const dueCount = vocab.filter(v => isDue(v)).length;
+  document.getElementById('dueCountPanel').textContent = dueCount;
+}
+
+// ===== 菜单面板逻辑 =====
+function openMenu() {
+  document.getElementById('menuPanel').classList.add('active');
+}
+
+function closeMenu() {
+  document.getElementById('menuPanel').classList.remove('active');
+}
+
+// ===== 检测首次访问 =====
+window.addEventListener('DOMContentLoaded', () => {
+  const hasUsedBefore = localStorage.getItem('hasUsedApp');
+  if (hasUsedBefore) {
+    document.body.classList.remove('first-visit');
+  }
+});
+
 // ---------------- 数据 ----------------
 // 词库、示例文本、练习题和语法点从 data/*.json 加载，便于非代码方式维护。
 let DICT = {};
@@ -615,6 +701,14 @@ async function renderText(){
   refreshRetellAdvice();
   setPostAnalysisActionsVisible(true);
   setReadingReady(true);
+
+  // 显示状态条和图例
+  const statusBar = document.getElementById('statusBar');
+  const legendInline = document.getElementById('legendInline');
+  const readingHint = document.getElementById('readingHint');
+  if(statusBar) statusBar.style.display = 'flex';
+  if(legendInline) legendInline.style.display = 'flex';
+  if(readingHint) readingHint.style.display = 'block';
 
   const useKuromoji = document.getElementById('useKuromoji')?.checked;
   if(useKuromoji){

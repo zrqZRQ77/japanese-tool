@@ -48,34 +48,22 @@
     </div>
   </div>
 
-  <!-- 应用界面 -->
+  <!-- 应用界面（分析后显示） -->
   <div class="app-interface" id="appInterface">
 
-    <!-- 左侧边栏 -->
-    <aside class="app-sidebar" id="appSidebar">
-      <div class="sidebar-brand">
-        <div class="brand-mini" onclick="resetToHero()">
-          <div class="brand-mark">読</div>
-          <span class="brand-text">読める</span>
-        </div>
+    <!-- 简化的顶栏 -->
+    <header class="app-header-simple">
+      <div class="brand-mini" onclick="resetToHero()">
+        <span class="brand-mark" aria-hidden="true">読</span>
+        <span>读得懂</span>
       </div>
-
-      <nav class="sidebar-nav">
-        <button class="nav-item active">阅读</button>
-        <button class="nav-item">练习</button>
-        <button class="nav-item">语法</button>
-        <button class="nav-item">历史</button>
-      </nav>
-
-      <div style="padding: 0 24px;">
-        <button class="vocab-badge" onclick="openVocabPanel()">
-          <span>生词本</span>
-          <span id="vocabBadgeCount">0</span>
-        </button>
+      <div class="header-actions">
+        <button class="vocab-badge" type="button" onclick="openVocabPanel()" title="查看生词本">生词本 <span id="vocabBadgeCount">0</span></button>
+        <button class="btn-icon" onclick="openMenu()" title="菜单" aria-label="打开菜单">☰</button>
       </div>
-    </aside>
+    </header>
 
-    <div class="wrap">
+    <div class="panels">
       <!-- 阅读主界面 -->
       <div class="card reading-main">
         <div class="card-pad">
