@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>读得懂 · 日语阅读辅助工具 MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<link rel="stylesheet" href="styles.css?v=20260627-4">
+</head>
+<body data-view="reading">
+<div class="wrap">
+
+  <header class="app-header">
+    <h1 class="compact-h1"><span class="brand-mark" aria-hidden="true">読</span><span><span class="jp">読める、わかる、続けられる</span>读得懂</span></h1>
+  </header>
+  <div class="top-row">
+    <nav class="workspace-nav" aria-label="主要工作区">
+      <button class="workspace-tab active" data-view="reading" onclick="switchWorkspace('reading')">阅读</button>
+      <button class="workspace-tab" data-view="vocab" onclick="switchWorkspace('vocab')">复习</button>
+      <button class="workspace-tab" data-view="retell" onclick="switchWorkspace('retell')">练习</button>
+      <button class="workspace-tab" data-view="grammar" onclick="switchWorkspace('grammar')">语法词典</button>
+    </nav>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <button class="vocab-badge" type="button" onclick="switchWorkspace('vocab')" title="查看生词本和闪卡复习">生词本 <span id="vocabBadgeCount">0</span></button>
+      <label class="language-field" id="ttsVoiceField" style="display:none;">朗读声音
+        <select id="ttsVoiceSelect" onchange="setPreferredVoice(this.value)"></select>
+      </label>
+      <button class="btn-ghost" type="button" onclick="openOnboarding()" style="padding:7px 12px;font-size:12px;">使用说明</button>
+    </div>
+  </div>
+
+  <div class="onboarding-banner card" id="onboardingBanner">
+    <div class="card-pad">
+      <div class="card-head"><span class="card-title"><span class="tag">新手</span>先读懂一段日语</span></div>
+      <div class="onboarding-steps">
+        <div class="onboarding-step"><b>1. 粘贴文章</b><span>把想读的日语放进输入框。</span></div>
+        <div class="onboarding-step"><b>2. 点击分析</b><span>页面会自动加读音、标出生词。</span></div>
+        <div class="onboarding-step"><b>3. 点词查看</b><span>点击带颜色的词语，查看释义并收藏。</span></div>
+      </div>
+      <div class="btnrow">
+        <button class="btn-primary" onclick="startOnboardingDemo()" style="padding:7px 14px;font-size:12px;">直接试试示例文本</button>
+        <button class="btn-ghost" onclick="dismissOnboarding()" style="padding:7px 14px;font-size:12px;">我知道了,开始使用</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panels">
+
+    <div class="card reading-main">
+      <div class="card-pad">
+        <div class="card-head">
+          <span class="card-title"><span class="tag">阅读</span>把一段日语变成可点击的阅读材料</span>
+        </div>
+        <div class="source-composer" id="sourceComposer">
+          <div class="source-dropzone">
+            <textarea id="inputText" placeholder="粘贴日语原文，或粘贴一篇日语文章链接；也可以上传 PDF / Word / TXT 资料。"></textarea>
+            <div class="source-actions">
+              <button class="btn-primary" onclick="analyzeSourceInput()">识别资料</button>
+              <button class="btn-ghost" type="button" onclick="document.getElementById('documentFileInput').click()">上传文件</button>
+              <button class="btn-ghost" onclick="loadSample()">载入示例</button>
+            </div>
+            <input id="articleUrlInput" type="hidden">
+            <input id="documentFileInput" type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" hidden onchange="extractUploadedFile(this.files[0])">
+            <div class="source-help">支持：直接文本、文章链接、PDF（20 MB）、Word / DOCX（10 MB）、TXT（2 MB）。</div>
+            <div class="import-status" id="importStatus">把资料放进来后，点击「识别资料」。</div>
+          </div>
+
+          <details class="import-disclosure compact-options">
+            <summary>资料选项与推荐来源</summary>
+            <div class="file-import-row file-options-row">
+              <label class="pdf-mode-field" title="日文小说/书籍常见竖排版式，选这个会自动转成从左到右的横排">排版方向
+                <select id="pdfModeSelect">
+                  <option value="auto" selected>自动识别</option>
+                  <option value="horizontal">横排（普通文档）</option>
+                  <option value="vertical">竖排书籍/小说</option>
+                </select>
+              </label>
+              <label class="pdf-mode-field" title="如果这个PDF是把网页打印/导出得到的，选这个能更好地去掉网页里的导航、广告等无关内容">PDF 来源
+                <select id="pdfCleanupSelect">
+                  <option value="normal" selected>普通文档</option>
+                  <option value="web-article">网页打印/导出的PDF</option>
+                </select>
+              </label>
+            </div>
+            <div class="source-list" aria-label="推荐日语内容来源">
+              <button class="source-card" onclick="openRecommendedSource('https://www.aozora.gr.jp/')">
+                <b>青空文庫</b><span>N2-N1 公版文学</span>
+              </button>
+              <button class="source-card" onclick="openRecommendedSource('https://tsunagarujp.mext.go.jp/')">
+                <b>つながる日本語</b><span>N5-N3 生活日语</span>
+              </button>
+              <button class="source-card" onclick="openRecommendedSource('https://www.nippon.com/ja/')">
+                <b>Nippon.com</b><span>N2-N1 社会文化</span>
+              </button>
+            </div>
+          </details>
+        </div>
+
+        <div class="post-analysis-bar" id="postAnalysisBar">
+          <span>已生成可点击阅读材料</span>
+          <button class="btn-ghost" type="button" onclick="editSourceText()">更换文章</button>
+          <button class="btn-ghost is-hidden" id="annotationEditBtn" onclick="toggleAnnotationEditMode()">编辑标注</button>
+          <button class="btn-ghost is-hidden" id="exportTriggerBtn" onclick="openExportModal()">导出</button>
+          <button class="btn-primary" type="button" onclick="switchWorkspace('retell')">去练习</button>
+        </div>
+
+        <details class="import-disclosure">
+          <summary>更多设置</summary>
+          <div class="engine-row">
+            <label class="engine-toggle" title="开启后会自动给文本里的每个词分词、标注假名和释义,覆盖范围比内置词库更广（技术名称: kuromoji 分词引擎）"><input id="useKuromoji" type="checkbox" checked> 智能分词（推荐）</label>
+            <span class="engine-status loading" id="tokenizerStatus">智能分词加载中,加载失败会自动退回内置词库</span>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-n5"></i>N5</span>
+            <span><i class="dot dot-n4"></i>N4</span>
+            <span><i class="dot dot-n3"></i>N3</span>
+            <span><i class="dot" style="background:var(--km);"></i>已识别词</span>
+            <span><i class="dot dot-particle"></i>助词</span>
+            <span><i class="dot dot-trap"></i>易误解词</span>
+          </div>
+        </details>
+
+        <div class="stats" id="statsBar"></div>
+        <div class="reading-hint" id="readingHint">点击带颜色的词语，查看读音和释义。</div>
+
+        <div class="reading-output" id="output">
+          <span style="color:var(--ink-soft);font-size:14.5px;">点击「载入示例文本」看效果 →</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="reading-side" style="display:flex;flex-direction:column;gap:22px;">
+
+      <div class="card detail-panel">
+        <div class="card-pad">
+          <div class="card-head"><span class="card-title"><span class="tag">详解</span>词义卡片</span></div>
+          <div id="detailArea">
+            <div class="detail-empty">分析后点击带颜色的词语，这里会显示读音、释义和等级。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card vocab-panel">
+        <div class="card-pad">
+          <div class="card-head">
+            <span class="card-title"><span class="tag">生词本</span>已收藏 <span id="vocabCount">0</span> 个</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn-ghost" onclick="exportVocabCsv()" style="padding:4px 10px;font-size:12px;">导出生词本</button>
+              <button class="btn-ghost" onclick="clearAllVocab()" style="padding:4px 10px;font-size:12px;color:var(--trap);border-color:var(--trap);">全部清空</button>
+            </div>
+          </div>
+          <ul class="vocab-list" id="vocabList"></ul>
+          <div class="vocab-empty" id="vocabEmptyMsg">还没有收藏的词 —— 在词义卡片里点「加入生词本」试试。</div>
+        </div>
+      </div>
+
+      <div class="card review-panel">
+        <div class="card-pad">
+          <div class="card-head"><span class="card-title"><span class="tag">学习</span>闪卡复习</span></div>
+          <div class="due-row">
+            <span class="due-count">待复习:<b id="dueCount">0</b> 个</span>
+            <button class="btn-primary" id="startReviewBtn" onclick="startReview()">开始复习</button>
+          </div>
+          <div id="flashArea">
+            <div class="flash-empty">生词本里有词之后,到期的词会出现在这里供你复习。点击「开始复习」启动。</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card grammar-section">
+    <div class="card-pad">
+      <div class="card-head"><span class="card-title"><span class="tag">语法</span>语法点词典(Beta)</span></div>
+      <div class="lookup-status" style="margin-bottom:10px;">这是一份独立的语法参考词典，和你在「阅读」里分析的文章内容无关，可以随时搜索查阅。</div>
+      <input class="grammar-search" id="grammarSearch" placeholder="搜索语法点,比如「は」「て形」「敬语」……" oninput="renderGrammar()">
+      <div class="grammar-grid" id="grammarGrid"></div>
+    </div>
+  </div>
+
+  <div class="card typing-section">
+    <div class="card-pad">
+      <div class="practice-switch">
+        <button class="workspace-tab" type="button" onclick="switchWorkspace('retell')">理解练习</button>
+        <button class="workspace-tab active" type="button" onclick="switchWorkspace('typing')">打字练习</button>
+      </div>
+      <div class="card-head">
+        <span class="card-title"><span class="tag">输出</span>日语打字练习</span>
+      </div>
+      <div class="lookup-status" style="margin-bottom:10px;">这是一套固定的N5-N4句型题库，和你在「阅读」里分析的文章无关，专门用来练习假名输入和基础语法。</div>
+      <div class="typing-grid">
+        <div>
+          <div class="typing-prompt">
+            <div class="typing-meta" id="typingMeta"></div>
+            <div class="typing-cn" id="typingPromptCn"></div>
+            <div class="typing-answer" id="typingAnswerPreview"></div>
+          </div>
+          <textarea class="typing-input" id="typingInput" placeholder="在这里输入日语答案……" oninput="clearTypingResult()"></textarea>
+          <div class="btnrow">
+            <button class="btn-primary" onclick="checkTypingAnswer()">检查</button>
+            <button class="btn-ghost" onclick="speakCurrentTypingAnswer()">朗读参考答案</button>
+            <button class="btn-ghost" onclick="showTypingAnswer()">显示答案</button>
+            <button class="btn-ghost" onclick="nextTypingPrompt()">下一题</button>
+          </div>
+          <div class="typing-result" id="typingResult"></div>
+        </div>
+        <div class="typing-side">
+          <div class="typing-prompt">
+            <div class="typing-meta"><span class="typing-chip">N5-N4</span><span class="typing-chip">固定题库</span></div>
+            <div style="font-size:13px;color:var(--ink-soft);line-height:1.8;">选择一句中文提示，输入对应日语。先用固定句库练假名、助词和礼貌体，后面可以接入 AI 批改。</div>
+          </div>
+          <div class="typing-list" id="typingList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card retell-section">
+    <div class="card-pad">
+      <div class="practice-switch">
+        <button class="workspace-tab active" type="button" onclick="switchWorkspace('retell')">理解练习</button>
+        <button class="workspace-tab" type="button" onclick="switchWorkspace('typing')">打字练习</button>
+      </div>
+      <div class="card-head"><span class="card-title"><span class="tag">理解</span>挖空自测</span></div>
+      <div class="lookup-status" id="clozeAdvice">先在「阅读」标签里分析一段文本，再回来生成挖空测试。</div>
+      <div class="btnrow">
+        <button class="btn-primary" onclick="generateCloze()">生成挖空测试</button>
+        <button class="btn-ghost" onclick="checkCloze()">检查答案</button>
+        <button class="btn-ghost" onclick="revealCloze()">显示全部答案</button>
+      </div>
+      <div class="reading-output" id="clozeOutput" style="min-height:120px;">
+        <span style="color:var(--ink-soft);font-size:14.5px;">点击「生成挖空测试」，会把刚才读过的文章里的生词挖空，凭上下文回忆并填写。</span>
+      </div>
+      <div class="typing-score" id="clozeScore" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <div class="card retell-section">
+    <div class="card-pad">
+      <div class="card-head"><span class="card-title"><span class="tag">输出</span>口语复述 · 对照原文自查</span></div>
+      <div class="lookup-status" id="retellAdvice">先在「阅读」标签里分析一段文本，再回来练习复述。</div>
+      <div class="btnrow">
+        <button class="btn-ghost" onclick="speakOriginalForRetell()">朗读原文</button>
+        <button class="btn-primary" id="retellRecordBtn" onclick="toggleRetellRecording()">开始录音复述</button>
+      </div>
+      <div class="typing-result" id="retellResult"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="tts-control-bar" id="ttsControlBar" aria-live="polite">
+  <span>🔊 朗读中……</span>
+  <button class="btn-ghost" type="button" id="ttsPauseBtn" onclick="toggleTtsPause()">暂停</button>
+  <button class="btn-primary" type="button" onclick="stopTts()">停止</button>
+</div>
+
+<div class="selection-tools" id="selectionTools" aria-live="polite">
+  <div class="selection-text" id="selectionText"></div>
+  <div class="selection-actions">
+    <button class="btn-primary" type="button" onclick="lookupSelectedText()">翻译/释义</button>
+    <button class="btn-ghost" type="button" onclick="saveSelectedTextToVocab()">加入生词本</button>
+    <button class="btn-ghost" type="button" onclick="speakSelectedText()">朗读</button>
+  </div>
+  <div class="selection-result" id="selectionResult">选中词、短语或句子后可以查询。</div>
+</div>
+
+<div class="export-modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+  <div class="export-dialog">
+    <div class="export-head">
+      <strong id="exportTitle">导出阅读文本</strong>
+      <button class="icon-btn" type="button" onclick="closeExportModal()" aria-label="关闭导出面板">×</button>
+    </div>
+    <div class="export-body">
+      <div class="export-selects">
+        <div class="export-select-field">
+          <label for="exportLayoutSelect">版式</label>
+          <div class="export-select-shell">
+            <select id="exportLayoutSelect" onchange="syncExportOptions()">
+              <option value="landscape" selected>横版</option>
+              <option value="portrait">竖版</option>
+            </select>
+          </div>
+        </div>
+        <div class="export-select-field">
+          <label for="exportFormatSelect">格式</label>
+          <div class="export-select-shell">
+            <select id="exportFormatSelect" onchange="syncExportOptions()">
+              <option value="pptx" selected>PPTX（稳定排版）</option>
+              <option value="png">PNG 图片</option>
+              <option value="jpeg">JPEG 图片</option>
+              <!-- Word 导出先不展示:当前浏览器端生成的 ruby DOCX 在部分 Word 版本中兼容性不稳定。 -->
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="lookup-status" style="margin-top:10px;">⚠️ 这三种格式导出的正文都是「图片版」，排版稳定但下载后<b>不能再编辑文字内容</b>，只能整体当图片用。如果需要导出后还能改文字，请用「编辑标注」调整好再导出，或者直接复制原文自己排版。</div>
+
+      <div class="export-settings export-settings-modal" id="pptExportSettings" aria-label="PPT 导出设置">
+        <label>正文字号<input id="pptBaseFont" type="number" value="24" min="12" max="44"></label>
+        <label>假名字号<input id="pptRubyFont" type="number" value="11" min="6" max="24"></label>
+        <label>假名距离<input id="pptRubyGap" type="number" value="0.16" min="0.05" max="0.45" step="0.01"></label>
+        <label>行距<input id="pptLineHeight" type="number" value="0.64" min="0.45" max="1.2" step="0.01"></label>
+        <label>每行宽度<input id="pptMaxCells" type="number" value="34" min="18" max="50"></label>
+      </div>
+      <div class="export-preview" aria-label="导出预览"><div class="export-preview-content" id="exportPreviewContent"></div></div>
+    </div>
+    <div class="export-actions">
+      <span class="export-status" id="exportStatus" aria-live="polite"></span>
+      <button class="btn-ghost" type="button" onclick="closeExportModal()">取消</button>
+      <button class="btn-primary" id="exportDownloadBtn" type="button" onclick="runExport()">下载</button>
+    </div>
+  </div>
+</div>
+
+<div class="export-modal" id="importPreviewModal" role="dialog" aria-modal="true" aria-labelledby="importPreviewTitle">
+  <div class="export-dialog">
+    <div class="export-head">
+      <strong id="importPreviewTitle">检查导入正文</strong>
+      <button class="icon-btn" type="button" onclick="closeImportPreview()" aria-label="关闭导入预览">×</button>
+    </div>
+    <div class="export-body">
+      <div class="import-preview-summary" id="importPreviewSummary"></div>
+      <div class="clean-actions">
+        <button class="btn-ghost" type="button" onclick="cleanImportText('article')">只保留正文</button>
+        <button class="btn-ghost" type="button" onclick="cleanImportText('blank')">合并多余空行</button>
+        <button class="btn-ghost" type="button" onclick="cleanImportText('spaces')">整理空格</button>
+        <button class="btn-ghost" type="button" onclick="cleanImportText('edges')">删除首尾短行</button>
+      </div>
+      <textarea id="importPreviewText" style="min-height:340px" aria-label="导入正文预览"></textarea>
+    </div>
+    <div class="export-actions">
+      <button class="btn-ghost" type="button" onclick="closeImportPreview()">取消</button>
+      <button class="btn-primary" type="button" onclick="confirmImportPreview()">使用这段正文</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
