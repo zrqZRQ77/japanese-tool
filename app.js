@@ -1390,6 +1390,7 @@ const LEVEL_LABEL = {N5:'N5 · 基础',N4:'N4 · 初中级',N3:'N3 · 中级',pa
 const LEVEL_COLOR = {N5:'var(--n5)',N4:'var(--n4)',N3:'var(--n3)',particle:'var(--particle)',trap:'var(--trap)',kuromoji:'var(--km)'};
 const LEVEL_BG = {N5:'var(--n5-bg)',N4:'var(--n4-bg)',N3:'var(--n3-bg)',particle:'var(--particle-bg)',trap:'var(--trap-bg)',kuromoji:'var(--km-bg)'};
 
+<<<<<<< HEAD
 const PART_LABELS_ZH = {
   n:'名词', noun:'名词', v:'动词', verb:'动词', adj:'形容词', adverb:'副词', adv:'副词',
   expression:'表达', exp:'表达', particle:'助词', prefix:'接头词', suffix:'接尾词',
@@ -1437,6 +1438,8 @@ function dictionaryEntryChinese(entry){
   return `<b>${escapeHtml(entry.word || '')}</b> ${escapeHtml(entry.reading || '')}${partText}<br>${meaningText}`;
 }
 
+=======
+>>>>>>> dd2b313f54dc18c5bc2f554d023cbd23feeead34
 function rubyEditorHtml(surface, reading, tokenId = ''){
   const override = RUBY_OVERRIDES[surface];
   const value = override && !override.hidden ? override.reading : reading;
@@ -1495,7 +1498,11 @@ async function lookupDictionary(encoded){
     if(!response) throw new Error('无法连接词典服务。');
     const data = await response.json();
     if(!response.ok || !data.ok) throw new Error(data.message || '未找到词条。');
+<<<<<<< HEAD
     target.innerHTML = data.entries.map(dictionaryEntryChinese).join('<br><br>');
+=======
+    target.innerHTML = data.entries.map(entry=>`<b>${escapeHtml(entry.word)}</b> ${escapeHtml(entry.reading)} · ${escapeHtml(entry.parts.join('、') || 'word')}<br>${escapeHtml(entry.meanings.join('; '))}`).join('<br><br>');
+>>>>>>> dd2b313f54dc18c5bc2f554d023cbd23feeead34
   }catch(error){ target.textContent = error.message || '词典查询失败。'; }
 }
 
@@ -1559,7 +1566,13 @@ async function autoLookupTokenMeaning(word, tokenId){
     if(!response) throw new Error('无法连接词典服务,请确认 backend 已启动。');
     const data = await response.json();
     if(!response.ok || !data.ok || !data.entries?.length) throw new Error(data.message || '词典里没查到这个词,可能是动词/形容词的活用形。');
+<<<<<<< HEAD
     target.innerHTML = '<b>释义：</b>' + data.entries.slice(0, 3).map(dictionaryEntryChinese).join('<br>');
+=======
+    target.innerHTML = '<b>释义：</b>' + data.entries.slice(0, 3).map(entry=>
+      `${escapeHtml(entry.reading || '')} · ${escapeHtml((entry.parts || []).join('、') || 'word')}：${escapeHtml((entry.meanings || []).join('; '))}`
+    ).join('<br>');
+>>>>>>> dd2b313f54dc18c5bc2f554d023cbd23feeead34
   }catch(error){
     target.innerHTML = `<b>释义：</b><span style="color:var(--ink-soft);">${escapeHtml(error.message || '查询失败。')}</span> <button class="btn-ghost" style="padding:3px 8px;font-size:11px;" onclick='autoLookupTokenMeaning(${JSON.stringify(word)}, ${tokenId})'>重试</button>`;
   }
