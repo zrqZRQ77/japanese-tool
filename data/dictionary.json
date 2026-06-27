@@ -1,0 +1,590 @@
+{
+  "は": {
+    "reading": "は",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "提示主题,「关于……来说」"
+  },
+  "が": {
+    "reading": "が",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "提示主语,强调「是什么」在做动作"
+  },
+  "を": {
+    "reading": "を",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "提示动作的对象(宾语)"
+  },
+  "に": {
+    "reading": "に",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "表示时间点、地点、对象等,「在……/向……」"
+  },
+  "で": {
+    "reading": "で",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "表示动作发生的场所或使用的手段"
+  },
+  "と": {
+    "reading": "と",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "「和、与」,表示并列或共同动作的对象"
+  },
+  "も": {
+    "reading": "も",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "「也」,表示同样适用"
+  },
+  "から": {
+    "reading": "から",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "「从……、因为……」,表示起点或原因"
+  },
+  "まで": {
+    "reading": "まで",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "「到……为止」,表示终点"
+  },
+  "より": {
+    "reading": "より",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "用于比较,「比……」"
+  },
+  "へ": {
+    "reading": "へ",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "表示移动的方向,「往……」"
+  },
+  "の": {
+    "reading": "の",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "表示所属关系,「……的」"
+  },
+  "ば": {
+    "reading": "ば",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "假定条件,「如果……」"
+  },
+  "たり": {
+    "reading": "たり",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "列举动作,「……,又……」"
+  },
+  "ながら": {
+    "reading": "ながら",
+    "level": "particle",
+    "pos": "助词",
+    "meaning": "「一边……一边……」,两动作同时进行"
+  },
+  "起きます": {
+    "reading": "おきます",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "起床(「起きる」的礼貌形)"
+  },
+  "起きる": {
+    "reading": "おきる",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "起床"
+  },
+  "食べます": {
+    "reading": "たべます",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "吃(「食べる」的礼貌形)"
+  },
+  "食べる": {
+    "reading": "たべる",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "吃"
+  },
+  "食べて": {
+    "reading": "たべて",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "「食べる」的て形,常用于「先做……,然后……」"
+  },
+  "行きます": {
+    "reading": "いきます",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "去(「行く」的礼貌形)"
+  },
+  "行く": {
+    "reading": "いく",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "去"
+  },
+  "来ます": {
+    "reading": "きます",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "来"
+  },
+  "帰ります": {
+    "reading": "かえります",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "回去、回家"
+  },
+  "勉強します": {
+    "reading": "べんきょうします",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "学习"
+  },
+  "勉強する": {
+    "reading": "べんきょうする",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "学习"
+  },
+  "します": {
+    "reading": "します",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "做(「する」的礼貌形)"
+  },
+  "する": {
+    "reading": "する",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "做"
+  },
+  "教えます": {
+    "reading": "おしえます",
+    "level": "N4",
+    "pos": "动词",
+    "meaning": "教、告诉"
+  },
+  "教えて": {
+    "reading": "おしえて",
+    "level": "N4",
+    "pos": "动词",
+    "meaning": "「教える」的て形"
+  },
+  "くれます": {
+    "reading": "くれます",
+    "level": "N4",
+    "pos": "动词",
+    "meaning": "(别人)为我做……,带有感谢的语气"
+  },
+  "くれる": {
+    "reading": "くれる",
+    "level": "N4",
+    "pos": "动词",
+    "meaning": "(别人)为我做……"
+  },
+  "あります": {
+    "reading": "あります",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "有(无生命物体)"
+  },
+  "ある": {
+    "reading": "ある",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "有(无生命物体)"
+  },
+  "あれば": {
+    "reading": "あれば",
+    "level": "N4",
+    "pos": "动词",
+    "meaning": "「ある」的假定形,「如果有……」"
+  },
+  "見ます": {
+    "reading": "みます",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "看(「見る」的礼貌形)"
+  },
+  "見る": {
+    "reading": "みる",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "看"
+  },
+  "見たり": {
+    "reading": "みたり",
+    "level": "N4",
+    "pos": "动词",
+    "meaning": "「見る」的たり形,列举动作之一"
+  },
+  "読みます": {
+    "reading": "よみます",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "读(「読む」的礼貌形)"
+  },
+  "読む": {
+    "reading": "よむ",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "读"
+  },
+  "読んだり": {
+    "reading": "よんだり",
+    "level": "N4",
+    "pos": "动词",
+    "meaning": "「読む」的たり形,列举动作之一"
+  },
+  "書きます": {
+    "reading": "かきます",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "写"
+  },
+  "話します": {
+    "reading": "はなします",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "说话"
+  },
+  "聞きます": {
+    "reading": "ききます",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "听、问"
+  },
+  "買います": {
+    "reading": "かいます",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "买"
+  },
+  "飲みます": {
+    "reading": "のみます",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "喝"
+  },
+  "わかります": {
+    "reading": "わかります",
+    "level": "N5",
+    "pos": "动词",
+    "meaning": "明白、理解"
+  },
+  "私": {
+    "reading": "わたし",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "我"
+  },
+  "毎朝": {
+    "reading": "まいあさ",
+    "level": "N4",
+    "pos": "名词",
+    "meaning": "每天早上"
+  },
+  "七時": {
+    "reading": "しちじ",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "七点"
+  },
+  "朝ごはん": {
+    "reading": "あさごはん",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "早饭"
+  },
+  "学校": {
+    "reading": "がっこう",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "学校"
+  },
+  "今日": {
+    "reading": "きょう",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "今天"
+  },
+  "友達": {
+    "reading": "ともだち",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "朋友"
+  },
+  "一緒": {
+    "reading": "いっしょ",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "一起"
+  },
+  "図書館": {
+    "reading": "としょかん",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "图书馆"
+  },
+  "予定": {
+    "reading": "よてい",
+    "level": "N4",
+    "pos": "名词",
+    "meaning": "计划、安排"
+  },
+  "先生": {
+    "reading": "せんせい",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "老师"
+  },
+  "週末": {
+    "reading": "しゅうまつ",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "周末"
+  },
+  "時間": {
+    "reading": "じかん",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "时间"
+  },
+  "映画": {
+    "reading": "えいが",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "电影"
+  },
+  "本": {
+    "reading": "ほん",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "书"
+  },
+  "日本": {
+    "reading": "にほん",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "日本"
+  },
+  "日本語": {
+    "reading": "にほんご",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "日语"
+  },
+  "今": {
+    "reading": "いま",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "现在"
+  },
+  "明日": {
+    "reading": "あした",
+    "level": "N5",
+    "pos": "名词",
+    "meaning": "明天"
+  },
+  "とても": {
+    "reading": "とても",
+    "level": "N5",
+    "pos": "副词",
+    "meaning": "非常"
+  },
+  "親切": {
+    "reading": "しんせつ",
+    "level": "N4",
+    "pos": "形容词",
+    "meaning": "亲切、热心"
+  },
+  "いつも": {
+    "reading": "いつも",
+    "level": "N5",
+    "pos": "副词",
+    "meaning": "总是、平时"
+  },
+  "丁寧": {
+    "reading": "ていねい",
+    "level": "N4",
+    "pos": "形容词",
+    "meaning": "细心、礼貌、周到"
+  },
+  "高い": {
+    "reading": "たかい",
+    "level": "N5",
+    "pos": "形容词",
+    "meaning": "高、贵"
+  },
+  "安い": {
+    "reading": "やすい",
+    "level": "N5",
+    "pos": "形容词",
+    "meaning": "便宜"
+  },
+  "大きい": {
+    "reading": "おおきい",
+    "level": "N5",
+    "pos": "形容词",
+    "meaning": "大"
+  },
+  "小さい": {
+    "reading": "ちいさい",
+    "level": "N5",
+    "pos": "形容词",
+    "meaning": "小"
+  },
+  "新しい": {
+    "reading": "あたらしい",
+    "level": "N5",
+    "pos": "形容词",
+    "meaning": "新的"
+  },
+  "楽しい": {
+    "reading": "たのしい",
+    "level": "N5",
+    "pos": "形容词",
+    "meaning": "开心、快乐"
+  },
+  "難しい": {
+    "reading": "むずかしい",
+    "level": "N4",
+    "pos": "形容词",
+    "meaning": "难"
+  },
+  "簡単": {
+    "reading": "かんたん",
+    "level": "N4",
+    "pos": "形容词",
+    "meaning": "简单"
+  },
+  "元気": {
+    "reading": "げんき",
+    "level": "N5",
+    "pos": "形容词",
+    "meaning": "精神、健康"
+  },
+  "です": {
+    "reading": "です",
+    "level": "N5",
+    "pos": "系动词",
+    "meaning": "是(礼貌的判断句结尾)"
+  },
+  "ありがとう": {
+    "reading": "ありがとう",
+    "level": "N5",
+    "pos": "惯用语",
+    "meaning": "谢谢"
+  },
+  "すみません": {
+    "reading": "すみません",
+    "level": "N5",
+    "pos": "惯用语",
+    "meaning": "不好意思、对不起"
+  },
+  "おはよう": {
+    "reading": "おはよう",
+    "level": "N5",
+    "pos": "惯用语",
+    "meaning": "早上好"
+  },
+  "こんにちは": {
+    "reading": "こんにちは",
+    "level": "N5",
+    "pos": "惯用语",
+    "meaning": "你好(白天问候语)"
+  },
+  "手紙": {
+    "reading": "てがみ",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "信、书信 —— 容易被误解成「手纸(卫生纸)」"
+  },
+  "勉強": {
+    "reading": "べんきょう",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "学习 —— 容易被误解成中文「勉强(将就)」"
+  },
+  "邪魔": {
+    "reading": "じゃま",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "打扰、碍事 —— 容易被误解成「邪恶的魔鬼」"
+  },
+  "結構": {
+    "reading": "けっこう",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "相当、够好了 —— 容易被误解成中文「结构」"
+  },
+  "愛人": {
+    "reading": "あいじん",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "情人(贬义) —— 千万别理解成中文「爱人(配偶)」"
+  },
+  "留守": {
+    "reading": "るす",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "不在家 —— 容易理解反,中文语感是「留下看守」"
+  },
+  "暗算": {
+    "reading": "あんざん",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "心算 —— 容易误解成「暗中算计」"
+  },
+  "質問": {
+    "reading": "しつもん",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "提问(中性礼貌) —— 中文「质问」带责问语气,容易误会"
+  },
+  "我慢": {
+    "reading": "がまん",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "忍耐 —— 按字面拆解完全猜不出意思"
+  },
+  "微妙": {
+    "reading": "びみょう",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "说不清、不太好 —— 中文「微妙」偏褒义,语感相反"
+  },
+  "怪我": {
+    "reading": "けが",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "受伤 —— 容易理解成「责怪我」"
+  },
+  "上手": {
+    "reading": "じょうず",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "擅长、做得好 —— 中文「上手」是「开始做」的意思"
+  },
+  "結束": {
+    "reading": "けっそく",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "团结一致 —— 容易误解成中文「结束(完结)」"
+  },
+  "大丈夫": {
+    "reading": "だいじょうぶ",
+    "level": "trap",
+    "pos": "易误解词",
+    "meaning": "没关系、没问题 —— 字面拆解无法猜出含义"
+  }
+}
