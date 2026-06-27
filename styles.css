@@ -118,6 +118,9 @@ body {
   cursor: pointer;
   min-height: 48px;
   transition: opacity 0.2s;
+  position: relative;
+  z-index: 100;
+  pointer-events: auto;
 }
 
 .btn-primary-large:hover {
@@ -139,6 +142,9 @@ body {
   cursor: pointer;
   min-height: 48px;
   transition: all 0.2s;
+  position: relative;
+  z-index: 100;
+  pointer-events: auto;
 }
 
 .btn-ghost-large:hover {
