@@ -174,8 +174,7 @@ body {
 /* ===== 首次访问/应用界面切换 ===== */
 body.first-visit .app-interface { display: none !important; }
 body.first-visit .app-sidebar { display: none !important; }
-body.first-visit .wrap { display: none !important; }
-body:not(.first-visit) .hero-intro { display: none; }
+body:not(.first-visit) .hero-intro { display: none !important; }
 
 .hero-intro {
   display: block !important;
