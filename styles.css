@@ -217,6 +217,12 @@ body:not(.first-visit) .hero-intro { display: none; }
   height: 100vh;
   left: 0;
   top: 0;
+  z-index: 50;
+}
+
+/* 首次访问时隐藏侧边栏 */
+body.first-visit .app-sidebar {
+  display: none;
 }
 
 .sidebar-brand {
