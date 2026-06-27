@@ -384,6 +384,12 @@ function apiEndpoints(path){
   return [...new Set(bases)].map(base=>`${base}${path}`);
 }
 
+function hasConfiguredBackend(){
+  const configured = String(window.NIHONGO_CONFIG?.apiBaseUrl || '').trim();
+  const isLocalDev = ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
+  return !!configured || isLocalDev;
+}
+
 function connectionHelp(){
   const configured = String(window.NIHONGO_CONFIG?.apiBaseUrl || '').trim();
   if(configured) return '请确认后端服务正在运行，并且 config.js 里的 API 地址可以访问。';
@@ -404,15 +410,20 @@ async function postExtractUrl(url){
   const endpoints = apiEndpoints('/api/extract-url');
   let lastError = null;
   for(const endpoint of endpoints){
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 5000);
     try{
       const response = await fetch(endpoint, {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({url})
+        body:JSON.stringify({url}),
+        signal:controller.signal
       });
+      clearTimeout(timeout);
       const data = await readJsonResponse(response);
       return { response, data };
     }catch(error){
+      clearTimeout(timeout);
       lastError = error;
     }
   }
@@ -429,7 +440,12 @@ async function extractArticleUrl(urlOverride = ''){
     return;
   }
 
-  setImportStatus('正在提取正文……');
+  if(!hasConfiguredBackend()){
+    setImportStatus('URL 提取需要后端服务支持，当前公开前端暂不可用。请直接复制网页正文粘贴到资料框，或上传 PDF / Word / TXT。', 'error');
+    return;
+  }
+
+  setImportStatus('正在提取网页……如果超过几秒没有结果，可以直接复制网页正文粘贴。');
   try{
     const { response, data } = await postExtractUrl(url);
     if(!response.ok || !data.ok){
@@ -2162,6 +2178,8 @@ function renderVocab(){
   document.getElementById('vocabCount').textContent = vocabData.length;
   const badge = document.getElementById('vocabBadgeCount');
   if(badge) badge.textContent = vocabData.length;
+  const total = document.getElementById('totalVocabCount');
+  if(total) total.textContent = vocabData.length;
   if(vocabData.length===0){ list.innerHTML=''; empty.style.display='block'; updateDueCount(); return; }
   empty.style.display='none';
   const now = Date.now();
@@ -2193,6 +2211,8 @@ function updateDueCount(){
   const now = Date.now();
   const due = vocabData.filter(v=>v.dueAt<=now).length;
   document.getElementById('dueCount').textContent = due;
+  const total = document.getElementById('totalVocabCount');
+  if(total) total.textContent = vocabData.length;
 }
 
 // ---------------- 新增：导出与清空功能 ----------------
@@ -2317,9 +2337,21 @@ function startReview(){
   const now = Date.now();
   reviewQueue = vocabData.filter(v=>v.dueAt<=now).map(v=>v.word);
   if(reviewQueue.length===0){
-    document.getElementById('flashArea').innerHTML = '<div class="flash-empty">现在没有到期的词。新加入生词本的词可以马上复习,其余的词请等到提示的复习时间。</div>';
+    document.getElementById('flashArea').innerHTML = '<div class="flash-empty">现在没有到期的词。想马上练习的话，可以点「全部复习」。</div>';
     return;
   }
+  showNextCard();
+}
+
+function reviewAllVocab(){
+  if(!vocabData.length){
+    alert('生词本是空的，先去阅读文章收藏一些词吧。');
+    return;
+  }
+  reviewQueue = [...vocabData]
+    .sort(()=>Math.random() - 0.5)
+    .slice(0, 10)
+    .map(v=>v.word);
   showNextCard();
 }
 
@@ -2433,7 +2465,7 @@ function renderReadingHistory(){
     return !keyword || haystack.includes(keyword);
   });
   if(!filtered.length){
-    list.innerHTML = '<div class="history-empty">还没有阅读历史。分析一篇文章后，会自动保存在这里。</div>';
+    list.innerHTML = '<div class="history-empty"><p>还没有阅读历史。分析一篇文章后，会自动保存在这里。</p><button class="btn-primary" onclick="switchWorkspace(\'reading\')">去读一篇文章</button></div>';
     return;
   }
   list.innerHTML = filtered.map(item => `

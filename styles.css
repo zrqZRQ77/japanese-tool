@@ -271,6 +271,14 @@
     border-radius:8px;background:var(--aizome-soft);color:var(--aizome-deep);font-size:12.5px;font-weight:600;
   }
   body.has-reading .reading-hint{display:block;}
+  .legend-bar{
+    display:none;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;margin-bottom:2px;
+    padding:10px 14px;background:var(--paper-deep);border:1px solid var(--line);border-radius:8px;
+    font-size:12px;color:var(--ink-soft);
+  }
+  body.has-reading .legend-bar{display:flex;}
+  .legend-bar span{display:inline-flex;align-items:center;gap:5px;line-height:1.4;}
+  .legend-bar .legend-title{font-weight:700;color:var(--ink-soft);}
   .reading-output{margin-top:22px;padding:26px 2px 8px;border-top:1px solid var(--line);font-family:'Noto Sans JP','Hiragino Sans','Yu Gothic','Noto Sans SC',sans-serif;font-size:21px;line-height:2.35;color:var(--ink);font-weight:400;min-height:260px;}
   body.has-reading .reading-output{margin-top:14px;min-height:420px;}
   .reading-output.editing{
@@ -357,9 +365,12 @@
   .footer-note b{color:var(--aizome-deep);}
 
   /* 闪卡复习模块 */
-  .due-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .due-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
   .due-count{font-size:13px;color:var(--ink-soft);}
   .due-count b{color:var(--trap);font-size:16px;font-family:'Noto Serif SC',serif;}
+  .due-count span{font-size:11.5px;color:var(--ink-soft);}
+  .review-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .review-actions button{font-size:12px;padding:7px 10px;min-height:34px;}
   .flash-stage{
     border:1px solid var(--line);border-radius:2px;background:var(--paper);
     padding:34px 20px;text-align:center;min-height:150px;
@@ -451,7 +462,8 @@
   .history-item p{font-size:12px;color:var(--ink-soft);margin:0;}
   .history-actions{display:flex;gap:8px;flex:none;}
   .history-actions button{padding:7px 10px;font-size:12px;min-height:34px;}
-  .history-empty{font-size:13px;color:var(--ink-soft);line-height:1.8;border:1px dashed var(--line);border-radius:8px;padding:18px;text-align:center;}
+  .history-empty{font-size:13px;color:var(--ink-soft);line-height:1.8;border:1px dashed var(--line);border-radius:8px;padding:32px 18px;text-align:center;}
+  .history-empty p{margin:0 0 14px;}
   @media(max-width:900px){.discover-grid{grid-template-columns:1fr;}.history-item{align-items:flex-start;flex-direction:column;}.history-actions{width:100%;}.history-actions button{flex:1;}}
   .practice-switch{display:flex;gap:4px;width:max-content;max-width:100%;margin-bottom:14px;padding:4px;border:1px solid var(--line);background:var(--paper-deep);border-radius:8px;}
   .practice-switch .workspace-tab{min-height:34px;padding:7px 12px;}
@@ -531,6 +543,7 @@
     .onboarding-step:last-child{border-bottom:0;}
     .card-pad{padding:20px;}
     .reading-output{font-size:18px;line-height:2.4;padding-top:22px;}
+    .legend-bar{font-size:11px;gap:8px;padding:9px 10px;}
     body.has-reading .reading-output{min-height:360px;}
     .post-analysis-bar{display:none;}
     body.has-reading .post-analysis-bar{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;}

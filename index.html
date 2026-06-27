@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20260627-5">
+<link rel="stylesheet" href="styles.css?v=20260627-6">
 </head>
 <body data-view="reading">
 <div class="wrap">
@@ -45,7 +45,7 @@
         <div class="onboarding-step"><b>3. 点词查看</b><span>点击带颜色的词语，查看释义并收藏。</span></div>
       </div>
       <div class="btnrow">
-        <button class="btn-primary" onclick="startOnboardingDemo()" style="padding:7px 14px;font-size:12px;">直接试试示例文本</button>
+        <button class="btn-primary" onclick="startOnboardingDemo()" style="padding:7px 14px;font-size:12px;">试试示例文本 <span style="font-size:11px;opacity:.86;">（N4 · 日本文化）</span></button>
         <button class="btn-ghost" onclick="dismissOnboarding()" style="padding:7px 14px;font-size:12px;">我知道了,开始使用</button>
       </div>
     </div>
@@ -129,6 +129,15 @@
 
         <div class="stats" id="statsBar"></div>
         <div class="reading-hint" id="readingHint">点击带颜色的词语，查看读音和释义。</div>
+        <div class="legend-bar" aria-label="词汇颜色图例">
+          <span class="legend-title">词汇等级</span>
+          <span><i class="dot dot-n5"></i>N5基础</span>
+          <span><i class="dot dot-n4"></i>N4初级</span>
+          <span><i class="dot dot-n3"></i>N3中级</span>
+          <span><i class="dot" style="background:var(--km);"></i>已识别</span>
+          <span><i class="dot dot-particle"></i>助词</span>
+          <span><i class="dot dot-trap"></i>易误解</span>
+        </div>
 
         <div class="reading-output" id="output">
           <span style="color:var(--ink-soft);font-size:14.5px;">点击「载入示例文本」看效果 →</span>
@@ -166,11 +175,14 @@
         <div class="card-pad">
           <div class="card-head"><span class="card-title"><span class="tag">学习</span>闪卡复习</span></div>
           <div class="due-row">
-            <span class="due-count">待复习:<b id="dueCount">0</b> 个</span>
-            <button class="btn-primary" id="startReviewBtn" onclick="startReview()">开始复习</button>
+            <span class="due-count">生词本 <b id="totalVocabCount">0</b> 个 <span>（到期 <b id="dueCount">0</b> 个）</span></span>
+            <div class="review-actions">
+              <button class="btn-ghost" onclick="reviewAllVocab()">全部复习</button>
+              <button class="btn-primary" id="startReviewBtn" onclick="startReview()">复习到期词</button>
+            </div>
           </div>
           <div id="flashArea">
-            <div class="flash-empty">生词本里有词之后,到期的词会出现在这里供你复习。点击「开始复习」启动。</div>
+            <div class="flash-empty">点击「全部复习」可以随时复习生词本里的词；「复习到期词」会按间隔重复提醒。</div>
           </div>
         </div>
       </div>
