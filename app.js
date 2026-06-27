@@ -2232,6 +2232,16 @@ function todayStamp(){
   return new Date().toISOString().slice(0, 10).replace(/-/g, '');
 }
 
+function setInlineStatus(id, message, type = 'ok'){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = message;
+  el.className = `export-inline-status ${type}`.trim();
+  if(message) setTimeout(()=>{
+    if(el.textContent === message) el.textContent = '';
+  }, 4500);
+}
+
 // 导出生词本为 CSV (适配 Anki)
 function exportVocabCsv() {
   if (vocabData.length === 0) {
@@ -2267,6 +2277,7 @@ function exportAnkiTsv(){
   ].join('\t'));
   const header = '# 正面\t假名\t释义\t词性\t等级\t来源\n';
   downloadTextFile(`dokedo-anki-${todayStamp()}.tsv`, header + lines.join('\n'), 'text/tab-separated-values;charset=utf-8;');
+  setInlineStatus('vocabExportStatus', `已导出 ${vocabData.length} 个词，可在 Anki 中选择「导入文件」。`);
 }
 
 function exportLearningBackup(){
@@ -2511,8 +2522,9 @@ function clearReadingHistory(){
 function renderSourceDirectory(){
   const target = document.getElementById('sourceDirectory');
   if(!target) return;
+  const recommended = (localStorage.getItem('reading_level_result') || '').split('｜')[0] || '';
   target.innerHTML = READING_SOURCES.map(source => `
-    <article class="source-directory-item">
+    <article class="source-directory-item ${recommended && (source.level.includes(recommended) || recommended.includes(source.level.split('-')[0])) ? 'recommended' : ''}">
       <span>${escapeHtml(source.level)}</span>
       <h3>${escapeHtml(source.title)}</h3>
       <p>${escapeHtml(source.note)}</p>
@@ -2565,13 +2577,15 @@ function scoreLevelTest(){
   const result = `${level}｜答对 ${score}/${answered} 题`;
   localStorage.setItem('reading_level_result', result);
   showLevelResult(result);
+  renderSourceDirectory();
+  document.getElementById('sourceDirectory')?.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 function showLevelResult(result){
   const badge = document.getElementById('levelResultBadge');
   const box = document.getElementById('levelResult');
   if(badge) badge.textContent = result.split('｜')[0] || result;
-  if(box) box.innerHTML = `建议从 <b>${escapeHtml(result.split('｜')[0] || result)}</b> 的材料开始。可以先在右侧选择相近等级的来源，再复制到阅读页。<br><span>${escapeHtml(result)}</span>`;
+  if(box) box.innerHTML = `建议从 <b>${escapeHtml(result.split('｜')[0] || result)}</b> 的材料开始。右侧已高亮相近等级的来源，可以复制到阅读页试读。<br><span>${escapeHtml(result)}</span>`;
 }
 
 function resetLevelTest(){
@@ -2579,6 +2593,7 @@ function resetLevelTest(){
   localStorage.removeItem('reading_level_result');
   document.getElementById('levelResultBadge').textContent = '未测试';
   document.getElementById('levelResult').textContent = '完成后会推荐适合你的阅读等级和材料入口。';
+  renderSourceDirectory();
 }
 
 // ---------------- 语法点词典 ----------------
@@ -2587,7 +2602,7 @@ let openGrammarTitle = null;
 function renderGrammar(){
   if(!GRAMMAR_POINTS.length){
     const grid = document.getElementById('grammarGrid');
-    if(grid) grid.innerHTML = '<div class="grammar-empty">语法点正在加载，请稍后再试。</div>';
+    if(grid) grid.innerHTML = '<div class="grammar-empty"><p>语法点正在加载，请稍后再试。</p><button class="btn-primary" onclick="switchWorkspace(\'reading\')">先去阅读</button></div>';
     return;
   }
   const keyword = document.getElementById('grammarSearch').value.trim().toLowerCase();
@@ -2596,7 +2611,7 @@ function renderGrammar(){
     !keyword || g.title.toLowerCase().includes(keyword) || g.sub.toLowerCase().includes(keyword) || g.explain.toLowerCase().includes(keyword)
   );
   if(filtered.length===0){
-    grid.innerHTML = '<div class="grammar-empty">没有找到匹配的语法点,换个关键词试试。</div>';
+    grid.innerHTML = '<div class="grammar-empty"><p>没有找到匹配的语法点，换个关键词试试。</p><button class="btn-ghost" onclick="document.getElementById(\'grammarSearch\').value=\'\';renderGrammar();">查看全部语法</button></div>';
     return;
   }
   grid.innerHTML = filtered.map(g=>{
