@@ -179,6 +179,16 @@ function setTokenizerStatus(text, state){
   el.className = `engine-status ${state || ''}`.trim();
 }
 
+function showFallbackNotice(){
+  const out = document.getElementById('output');
+  if(!out || out.querySelector('.fallback-notice')) return;
+  const notice = document.createElement('div');
+  notice.className = 'fallback-notice';
+  notice.style.cssText = 'background:#fff4e5;border:1px solid #f0c36d;color:#8a5a00;padding:8px 12px;border-radius:6px;font-size:13px;margin-bottom:10px;';
+  notice.textContent = '⚠️ 智能分词加载失败，当前只用内置小词库标注，覆盖的词会比平时少很多。可以刷新页面重试。';
+  out.prepend(notice);
+}
+
 function initKuromoji(){
   if(KUROMOJI_TOKENIZER) return Promise.resolve(KUROMOJI_TOKENIZER);
   if(KUROMOJI_LOADING) return KUROMOJI_LOADING;
@@ -573,6 +583,22 @@ async function extractUploadedFile(file){
     return;
   }
 
+  // TXT 不需要服务端解析，直接在浏览器里读取，避免依赖后端
+  if(extension === '.txt'){
+    setImportStatus(`正在读取 ${file.name}……`);
+    try{
+      const text = (await file.text()).trim();
+      if(!text) throw new Error('文件中没有可提取的正文。');
+      setImportStatus(`已读取 ${file.name}，请检查内容`, 'ok');
+      openImportPreview(text, {title:file.name, type:'txt'});
+    }catch(error){
+      setImportStatus(error.message || 'TXT 文件读取失败。', 'error');
+    }finally{
+      if(input) input.value = '';
+    }
+    return;
+  }
+
   setImportStatus(`正在读取 ${file.name}……`);
   try{
     const endpoints = apiEndpoints('/api/extract-file');
@@ -730,6 +756,7 @@ async function renderText(){
     }
   }
   renderWithDictionary(raw, out, statsBar);
+  if(useKuromoji) showFallbackNotice();
   saveCurrentArticleToHistory();
 }
 
