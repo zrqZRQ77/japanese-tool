@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260628-15">
+<link rel="stylesheet" href="styles.css?v=20260628-16">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -63,7 +63,7 @@
       <nav class="sidebar-nav">
         <button class="nav-item active" data-view="reading" onclick="switchWorkspace('reading')">阅读</button>
         <button class="nav-item" data-view="retell" onclick="switchWorkspace('retell')">练习</button>
-        <button class="nav-item nav-vocab" onclick="openVocabPanel()">
+        <button class="nav-item nav-vocab" data-view="vocab" onclick="switchWorkspace('vocab')">
           生词本
           <span class="nav-badge" id="vocabBadgeCount">0</span>
         </button>
@@ -209,6 +209,44 @@
       </div>
 
     <!-- 其他标签页内容保持不变，但通过菜单访问 -->
+    <div class="card vocab-section-page">
+      <div class="card-pad">
+        <div class="card-head">
+          <span class="card-title"><span class="tag">生词</span>生词本与复习</span>
+          <div class="vocab-page-actions">
+            <button class="btn-ghost" onclick="exportVocabCsv()">导出CSV</button>
+            <button class="btn-ghost" onclick="exportAnkiTsv()">导出Anki</button>
+            <button class="btn-ghost danger-action" onclick="clearAllVocab()">清空</button>
+          </div>
+        </div>
+        <div class="vocab-page-summary">
+          <div><b id="vocabCountPage">0</b><span>已收藏</span></div>
+          <div><b id="dueCountPage">0</b><span>到期复习</span></div>
+        </div>
+        <div class="export-inline-status" id="vocabExportStatusPage" aria-live="polite"></div>
+        <div class="vocab-page-layout">
+          <section class="vocab-page-list">
+            <div class="section-header">
+              <span class="section-title">词汇列表</span>
+            </div>
+            <ul class="vocab-list" id="vocabListPage"></ul>
+            <div class="vocab-empty" id="vocabEmptyPage">还没有收藏的词。在阅读页点击词语后，可以加入生词本。</div>
+          </section>
+          <section class="vocab-page-review">
+            <div class="section-header">
+              <span class="section-title">闪卡复习</span>
+            </div>
+            <p class="review-copy">按间隔重复复习已收藏词，也可以随时复习全部生词。</p>
+            <div class="review-actions">
+              <button class="btn-ghost" onclick="switchWorkspace('reading');reviewAllVocab()">全部复习</button>
+              <button class="btn-primary" onclick="switchWorkspace('reading');startReview()">复习到期词</button>
+            </div>
+            <div id="flashAreaPage" class="flash-page-placeholder">复习卡片仍显示在阅读页右侧，下一步可以把它完全迁移到这里。</div>
+          </section>
+        </div>
+      </div>
+    </div>
+
     <div class="card grammar-section">
       <div class="card-pad">
         <div class="card-head"><span class="card-title"><span class="tag">语法</span>语法点词典(Beta)</span></div>
@@ -359,7 +397,7 @@
     <button class="btn-icon" onclick="closeMenu()" aria-label="关闭菜单">×</button>
   </div>
   <nav class="menu-nav">
-    <button onclick="closeMenu();openVocabPanel()">📚 生词本与复习</button>
+    <button onclick="closeMenu();switchWorkspace('vocab')">📚 生词本与复习</button>
     <button onclick="closeMenu();switchWorkspace('retell')">✍️ 练习</button>
     <button onclick="closeMenu();switchWorkspace('discover')">🎯 找材料</button>
     <button onclick="closeMenu();switchWorkspace('test')">📝 水平测试</button>
@@ -497,6 +535,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260628-15"></script>
+<script src="app.js?v=20260628-16"></script>
 </body>
 </html>

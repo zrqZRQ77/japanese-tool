@@ -1875,12 +1875,36 @@ body:not([data-view="reading"]) .reading-workbench {
   display: none !important;
 }
 
+body[data-view="reading"] .vocab-section-page,
+body[data-view="reading"] .grammar-section,
+body[data-view="reading"] .typing-section,
+body[data-view="reading"] .retell-section,
+body[data-view="reading"] .discover-section,
+body[data-view="reading"] .test-section,
+body[data-view="reading"] .history-section,
+body[data-view="vocab"] .reading-workbench,
+body[data-view="vocab"] .grammar-section,
+body[data-view="vocab"] .typing-section,
+body[data-view="vocab"] .retell-section,
+body[data-view="vocab"] .discover-section,
+body[data-view="vocab"] .test-section,
+body[data-view="vocab"] .history-section,
+body[data-view="grammar"] .vocab-section-page,
+body[data-view="typing"] .vocab-section-page,
+body[data-view="retell"] .vocab-section-page,
+body[data-view="discover"] .vocab-section-page,
+body[data-view="test"] .vocab-section-page,
+body[data-view="history"] .vocab-section-page {
+  display: none !important;
+}
+
 .reading-main {
   max-width: none;
   margin: 0;
 }
 
 .reading-main.card,
+.vocab-section-page,
 .grammar-section,
 .typing-section,
 .retell-section,
@@ -2007,6 +2031,7 @@ button,
 }
 
 body[data-view="grammar"] .grammar-section,
+body[data-view="vocab"] .vocab-section-page,
 body[data-view="typing"] .typing-section,
 body[data-view="retell"] .retell-section,
 body[data-view="discover"] .discover-section,
@@ -2014,6 +2039,144 @@ body[data-view="test"] .test-section,
 body[data-view="history"] .history-section {
   max-width: 920px;
   margin: 0 auto;
+}
+
+body[data-view="discover"] .discover-section {
+  max-width: 1040px;
+}
+
+.vocab-page-actions,
+.test-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.danger-action {
+  color: var(--trap);
+}
+
+.vocab-page-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 180px));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.vocab-page-summary > div {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fcfcfb;
+}
+
+.vocab-page-summary b {
+  display: block;
+  font-size: 26px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.vocab-page-summary span,
+.review-copy {
+  color: var(--muted);
+}
+
+.vocab-page-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 18px;
+}
+
+.vocab-page-list,
+.vocab-page-review {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.flash-page-placeholder {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f7f8f6;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.discover-section .card-pad {
+  padding: 28px;
+}
+
+.discover-section .lookup-status {
+  max-width: 620px;
+  margin-bottom: 22px !important;
+}
+
+.discover-sources {
+  gap: 14px;
+}
+
+.source-directory-item {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.source-directory-item.recommended {
+  border-color: rgba(47, 111, 98, 0.45);
+  background: var(--accent-soft);
+}
+
+.source-directory-item > span {
+  display: inline-flex;
+  width: max-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #eef0ee;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.source-directory-item h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.source-directory-item p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.source-directory-item .btnrow {
+  margin: 0;
+  justify-content: flex-end;
+}
+
+@media (max-width: 760px) {
+  .vocab-page-summary,
+  .vocab-page-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .source-directory-item {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .source-directory-item .btnrow {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 1180px) {

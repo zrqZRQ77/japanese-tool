@@ -116,28 +116,52 @@ function isDue(vocabItem) {
 
 function syncVocabPanelData() {
   const vocab = getAllVocab();
-  document.getElementById('vocabCountPanel').textContent = vocab.length;
-  document.getElementById('totalVocabCountPanel').textContent = vocab.length;
+  ['vocabCountPanel', 'vocabCountPage'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = vocab.length;
+  });
+  ['totalVocabCountPanel'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = vocab.length;
+  });
 
   const vocabListPanel = document.getElementById('vocabListPanel');
   const vocabEmptyPanel = document.getElementById('vocabEmptyPanel');
-
-  if(vocab.length === 0) {
-    vocabListPanel.style.display = 'none';
-    vocabEmptyPanel.style.display = 'block';
-  } else {
-    vocabListPanel.style.display = 'block';
-    vocabEmptyPanel.style.display = 'none';
-    vocabListPanel.innerHTML = vocab.map(v => `
+  const vocabListPage = document.getElementById('vocabListPage');
+  const vocabEmptyPage = document.getElementById('vocabEmptyPage');
+  const listMarkup = vocab.map(v => `
       <li class="vocab-item">
-        <div class="vocab-word">${v.word}</div>
-        <div class="vocab-meta">${v.reading || ''} · ${v.meaning || ''}</div>
+        <div>
+          <div class="vocab-word">${escapeHtml(v.word)}</div>
+          <div class="vocab-meta">${escapeHtml(v.reading || '')}${v.reading && v.meaning ? ' · ' : ''}${escapeHtml(v.meaning || '')}</div>
+        </div>
+        <button class="vocab-remove" onclick="removeFromVocab('${encodeURIComponent(v.word)}')" aria-label="移除 ${escapeHtml(v.word)}">×</button>
       </li>
     `).join('');
+
+  if(vocab.length === 0) {
+    if(vocabListPanel) vocabListPanel.style.display = 'none';
+    if(vocabEmptyPanel) vocabEmptyPanel.style.display = 'block';
+    if(vocabListPage) vocabListPage.style.display = 'none';
+    if(vocabEmptyPage) vocabEmptyPage.style.display = 'block';
+  } else {
+    if(vocabListPanel) {
+      vocabListPanel.style.display = 'block';
+      vocabListPanel.innerHTML = listMarkup;
+    }
+    if(vocabEmptyPanel) vocabEmptyPanel.style.display = 'none';
+    if(vocabListPage) {
+      vocabListPage.style.display = 'block';
+      vocabListPage.innerHTML = listMarkup;
+    }
+    if(vocabEmptyPage) vocabEmptyPage.style.display = 'none';
   }
 
   const dueCount = vocab.filter(v => isDue(v)).length;
-  document.getElementById('dueCountPanel').textContent = dueCount;
+  ['dueCountPanel', 'dueCountPage'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = dueCount;
+  });
 }
 
 // ===== 菜单面板逻辑 =====
@@ -358,11 +382,8 @@ function setImportStatus(message, type = ''){
 
 let pendingImportMeta = null;
 function switchWorkspace(view){
-  if(view === 'vocab'){
-    openVocabPanel();
-    return;
-  }
-  if(!['reading','typing','grammar','retell','discover','test','history'].includes(view)) return;
+  if(!['reading','typing','grammar','retell','discover','test','history','vocab'].includes(view)) return;
+  closeVocabPanel();
   document.body.dataset.view = view;
   document.querySelectorAll('.app-sidebar .nav-item').forEach(button=>{
     const navView = button.dataset.view;
@@ -377,6 +398,7 @@ function switchWorkspace(view){
   if(view === 'retell') refreshRetellAdvice();
   if(view === 'discover') renderSourceDirectory();
   if(view === 'history') renderReadingHistory();
+  if(view === 'vocab') syncVocabPanelData();
 }
 
 function openImportPreview(text, meta = {}){
@@ -2459,6 +2481,7 @@ function renderVocab(){
     </li>
   `;}).join('');
   updateDueCount();
+  syncVocabPanelData();
 }
 
 function formatDue(ts){
@@ -2474,6 +2497,8 @@ function updateDueCount(){
   document.getElementById('dueCount').textContent = due;
   const total = document.getElementById('totalVocabCount');
   if(total) total.textContent = vocabData.length;
+  const pageDue = document.getElementById('dueCountPage');
+  if(pageDue) pageDue.textContent = due;
 }
 
 // ---------------- 新增：导出与清空功能 ----------------
@@ -2503,6 +2528,12 @@ function setInlineStatus(id, message, type = 'ok'){
   }, 4500);
 }
 
+function setVocabExportStatus(message, type = 'ok'){
+  ['vocabExportStatus', 'vocabExportStatusPage', 'vocabExportStatusPanel'].forEach(id=>{
+    setInlineStatus(id, message, type);
+  });
+}
+
 // 导出生词本为 CSV (适配 Anki)
 function exportVocabCsv() {
   if (vocabData.length === 0) {
@@ -2520,6 +2551,7 @@ function exportVocabCsv() {
   ).join("\n");
 
   downloadTextFile("读得懂_生词本导出.csv", csvContent, 'text/csv;charset=utf-8;');
+  setVocabExportStatus(`已导出 ${vocabData.length} 个词的 CSV 文件。`);
 }
 
 function exportAnkiTsv(){
@@ -2538,7 +2570,7 @@ function exportAnkiTsv(){
   ].join('\t'));
   const header = '# 正面\t假名\t释义\t词性\t等级\t来源\n';
   downloadTextFile(`dokedo-anki-${todayStamp()}.tsv`, header + lines.join('\n'), 'text/tab-separated-values;charset=utf-8;');
-  setInlineStatus('vocabExportStatus', `已导出 ${vocabData.length} 个词，可在 Anki 中选择「导入文件」。`);
+  setVocabExportStatus(`已导出 ${vocabData.length} 个词，可在 Anki 中选择「导入文件」。`);
 }
 
 function exportLearningBackup(){
@@ -2799,8 +2831,10 @@ function renderSourceDirectory(){
   target.innerHTML = READING_SOURCES.map(source => `
     <article class="source-directory-item ${recommended && (source.level.includes(recommended) || recommended.includes(source.level.split('-')[0])) ? 'recommended' : ''}">
       <span>${escapeHtml(source.level)}</span>
-      <h3>${escapeHtml(source.title)}</h3>
-      <p>${escapeHtml(source.note)}</p>
+      <div class="source-directory-copy">
+        <h3>${escapeHtml(source.title)}</h3>
+        <p>${escapeHtml(source.note)}</p>
+      </div>
       <div class="btnrow">
         <button class="btn-primary" onclick="useSourceUrl('${encodeURIComponent(source.url)}')">复制到阅读页</button>
         <button class="btn-ghost" onclick="openRecommendedSource('${source.url}')">打开网站</button>
