@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260628-16">
+<link rel="stylesheet" href="styles.css?v=20260628-17">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -62,11 +62,11 @@
 
       <nav class="sidebar-nav">
         <button class="nav-item active" data-view="reading" onclick="switchWorkspace('reading')">阅读</button>
-        <button class="nav-item" data-view="retell" onclick="switchWorkspace('retell')">练习</button>
         <button class="nav-item nav-vocab" data-view="vocab" onclick="switchWorkspace('vocab')">
           生词本
           <span class="nav-badge" id="vocabBadgeCount">0</span>
         </button>
+        <button class="nav-item" data-view="retell" onclick="switchWorkspace('retell')">练习</button>
         <button class="nav-item" data-view="discover" onclick="switchWorkspace('discover')">找材料</button>
         <button class="nav-item" data-view="test" onclick="switchWorkspace('test')">水平测试</button>
         <button class="nav-item" data-view="history" onclick="switchWorkspace('history')">历史</button>
@@ -154,6 +154,12 @@
 
           <div class="stats" id="statsBar"></div>
           <div class="reading-hint" id="readingHint" style="display:none;">点击带颜色的词语，查看读音和释义。</div>
+          <div class="next-step-bar" id="nextStepBar" style="display:none;">
+            <span>下一步</span>
+            <button class="btn-ghost" onclick="switchWorkspace('vocab')">整理生词</button>
+            <button class="btn-primary" onclick="switchWorkspace('retell')">生成练习</button>
+            <button class="btn-ghost" onclick="switchWorkspace('discover')">找下一篇</button>
+          </div>
 
           <div class="reading-output" id="output">
             <span style="color:var(--ink-soft);font-size:14.5px;">点击「用示例开始」看效果 →</span>
@@ -230,18 +236,18 @@
               <span class="section-title">词汇列表</span>
             </div>
             <ul class="vocab-list" id="vocabListPage"></ul>
-            <div class="vocab-empty" id="vocabEmptyPage">还没有收藏的词。在阅读页点击词语后，可以加入生词本。</div>
+            <div class="vocab-empty" id="vocabEmptyPage">还没有收藏的词。先去阅读页分析一篇文章，再点击词语加入生词本。</div>
           </section>
           <section class="vocab-page-review">
             <div class="section-header">
               <span class="section-title">闪卡复习</span>
             </div>
-            <p class="review-copy">按间隔重复复习已收藏词，也可以随时复习全部生词。</p>
+            <p class="review-copy">阅读中收藏的词会沉淀到这里；积累后可以按间隔重复复习。</p>
             <div class="review-actions">
               <button class="btn-ghost" onclick="switchWorkspace('reading');reviewAllVocab()">全部复习</button>
               <button class="btn-primary" onclick="switchWorkspace('reading');startReview()">复习到期词</button>
             </div>
-            <div id="flashAreaPage" class="flash-page-placeholder">复习卡片仍显示在阅读页右侧，下一步可以把它完全迁移到这里。</div>
+            <div id="flashAreaPage" class="flash-page-placeholder">先积累几个生词，再开始复习。</div>
           </section>
         </div>
       </div>
@@ -265,7 +271,7 @@
         <div class="card-head">
           <span class="card-title"><span class="tag">输出</span>日语打字练习</span>
         </div>
-        <div class="lookup-status" style="margin-bottom:10px;">这是一套固定的N5-N4句型题库，和你在「阅读」里分析的文章无关，专门用来练习假名输入和基础语法。</div>
+        <div class="lookup-status" style="margin-bottom:10px;">打字练习用于补充基础句型；理解练习会优先使用你刚读过的文章。</div>
         <div class="typing-grid">
           <div>
             <div class="typing-prompt">
@@ -302,7 +308,7 @@
         <div class="card-head"><span class="card-title"><span class="tag">理解</span>挖空自测</span></div>
         <div class="lookup-status" id="clozeAdvice">在阅读页完成文章分析后，这里会自动解锁挖空练习。</div>
         <div class="article-practice-empty">
-          <p>理解练习会使用你刚读过的文章生成题目。</p>
+          <p>先完成一篇阅读，系统会用刚才的文章生成理解练习。</p>
           <button class="btn-primary" onclick="switchWorkspace('reading')">去阅读页导入文章</button>
         </div>
         <div class="article-practice-body">
@@ -324,7 +330,7 @@
         <div class="card-head"><span class="card-title"><span class="tag">输出</span>口语复述</span></div>
         <div class="lookup-status" id="retellAdvice">在阅读页完成文章分析后，这里会自动解锁复述练习。</div>
         <div class="article-practice-empty">
-          <p>复述练习需要先有一篇已分析的阅读材料。</p>
+          <p>先完成一篇阅读，再用原文做朗读和复述。</p>
           <button class="btn-primary" onclick="switchWorkspace('reading')">去阅读页导入文章</button>
         </div>
         <div class="article-practice-body">
@@ -535,6 +541,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260628-16"></script>
+<script src="app.js?v=20260628-17"></script>
 </body>
 </html>

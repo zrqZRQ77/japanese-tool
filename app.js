@@ -351,6 +351,8 @@ async function analyzeSourceInput(){
 function setPostAnalysisActionsVisible(visible){
   document.getElementById('annotationEditBtn')?.classList.toggle('is-hidden', !visible);
   document.getElementById('exportTriggerBtn')?.classList.toggle('is-hidden', !visible);
+  const nextStepBar = document.getElementById('nextStepBar');
+  if(nextStepBar) nextStepBar.style.display = visible ? 'flex' : 'none';
 }
 
 function setReadingReady(ready){
