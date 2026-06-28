@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260628-14">
+<link rel="stylesheet" href="styles.css?v=20260628-15">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -21,23 +21,20 @@
   <!-- Hero 首屏 -->
   <div class="hero-intro" id="heroIntro">
     <div class="hero-brand">
-      <div class="brand-mark-large">読</div>
-      <h1 class="hero-title">読める、わかる、続けられる</h1>
-      <p class="hero-subtitle">日语阅读辅助工具</p>
+      <h1 class="hero-title">日语阅读辅助工具</h1>
+      <p class="hero-subtitle">粘贴日语文章，自动整理假名、释义和生词。</p>
     </div>
 
     <div class="hero-input">
       <textarea id="heroInputText" placeholder="粘贴日语文本或文章链接"></textarea>
       <div class="hero-actions">
         <button class="btn-primary-large" onclick="analyzeFromHero()">
-          <span class="btn-icon-text">✨</span>
           开始阅读
         </button>
         <button class="btn-ghost-large" onclick="loadSampleFromHero()">
-          用示例开始
+          用示例
         </button>
         <button class="btn-ghost-large" onclick="document.getElementById('heroFileInput').click()">
-          <span class="btn-icon-text">📄</span>
           上传文件
         </button>
       </div>
@@ -77,7 +74,8 @@
       </nav>
     </aside>
 
-    <main class="wrap">
+    <main class="app-content">
+      <div class="reading-workbench">
       <!-- 阅读主界面 -->
       <section class="card reading-main">
         <div class="card-pad">
@@ -208,7 +206,7 @@
         </div>
 
       </div>
-    </div>
+      </div>
 
     <!-- 其他标签页内容保持不变，但通过菜单访问 -->
     <div class="card grammar-section">
@@ -349,6 +347,7 @@
       </div>
     </div>
 
+    </main>
   </div>
 
 </div>
@@ -498,6 +497,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260628-14"></script>
+<script src="app.js?v=20260628-15"></script>
 </body>
 </html>
