@@ -32,6 +32,41 @@ function showToast(message, type = 'info') {
   }, 3000);
 }
 
+// 安全的localStorage操作
+const safeStorage = {
+  setItem: function(key, value) {
+    try {
+      safeStorage.setItem(key, value);
+      return true;
+    } catch (e) {
+      if (e.name === 'QuotaExceededError') {
+        console.warn('localStorage空间已满:', e);
+        showToast('存储空间不足，部分数据可能无法保存', 'warning');
+      } else {
+        console.error('localStorage写入失败:', e);
+      }
+      return false;
+    }
+  },
+  getItem: function(key) {
+    try {
+      return safeStorage.getItem(key);
+    } catch (e) {
+      console.error('localStorage读取失败:', e);
+      return null;
+    }
+  },
+  removeItem: function(key) {
+    try {
+      localStorage.removeItem(key);
+      return true;
+    } catch (e) {
+      console.error('localStorage删除失败:', e);
+      return false;
+    }
+  }
+};
+
 // ===== Hero首屏逻辑 =====
 function analyzeFromHero() {
   const text = document.getElementById('heroInputText').value.trim();
@@ -41,13 +76,13 @@ function analyzeFromHero() {
   }
   document.body.classList.remove('first-visit');
   document.getElementById('inputText').value = text;
-  localStorage.setItem('hasUsedApp', 'true');
+  safeStorage.setItem('hasUsedApp', 'true');
   analyzeSourceInput();
 }
 
 function loadSampleFromHero() {
   document.body.classList.remove('first-visit');
-  localStorage.setItem('hasUsedApp', 'true');
+  safeStorage.setItem('hasUsedApp', 'true');
   loadSample();
 }
 
@@ -115,7 +150,7 @@ function closeMenu() {
 
 // ===== 检测首次访问 =====
 window.addEventListener('DOMContentLoaded', () => {
-  const hasUsedBefore = localStorage.getItem('hasUsedApp');
+  const hasUsedBefore = safeStorage.getItem('hasUsedApp');
   if (hasUsedBefore) {
     document.body.classList.remove('first-visit');
   }
@@ -187,7 +222,7 @@ let KUROMOJI_TOKENIZER = null;
 let KUROMOJI_LOADING = null;
 window.KUROMOJI_TOKEN_CACHE = [];
 let RUBY_OVERRIDES = {};
-try{ RUBY_OVERRIDES = JSON.parse(localStorage.getItem('reading_ruby_overrides') || '{}'); }catch{}
+try{ RUBY_OVERRIDES = JSON.parse(safeStorage.getItem('reading_ruby_overrides') || '{}'); }catch{}
 let IS_ANNOTATION_EDITING = false;
 let CURRENT_FOOTNOTES = [];
 let READING_HISTORY = [];
@@ -336,7 +371,7 @@ function switchWorkspace(view){
   document.querySelectorAll('.workspace-tab').forEach(button=>{
     button.classList.toggle('active', button.dataset.view === view);
   });
-  localStorage.setItem('reading_workspace', view);
+  safeStorage.setItem('reading_workspace', view);
   if(view === 'typing') renderTypingPractice();
   if(view === 'retell') refreshRetellAdvice();
   if(view === 'discover') renderSourceDirectory();
@@ -618,7 +653,7 @@ async function extractUploadedFile(file){
   }
 
   document.body.classList.remove('first-visit');
-  localStorage.setItem('hasUsedApp', 'true');
+  safeStorage.setItem('hasUsedApp', 'true');
   switchWorkspace('reading');
   const extension = (file.name.match(/\.[^.]+$/)?.[0] || '').toLowerCase();
   const limits = {'.pdf':20 * 1024 * 1024, '.docx':10 * 1024 * 1024, '.txt':2 * 1024 * 1024};
@@ -1154,7 +1189,7 @@ async function applyExportRubyEdits(){
       RUBY_OVERRIDES[base] = {reading:'', hidden:true};
     }
   });
-  localStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
+  safeStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
   await renderText();
   renderExportRubyEditor();
   updateExportPreview();
@@ -1699,20 +1734,20 @@ function saveRubyOverride(encoded){
   const reading = document.getElementById('rubyEditInput')?.value.trim();
   if(!reading) return;
   RUBY_OVERRIDES[surface] = {reading, hidden:false};
-  localStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
+  safeStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
   renderText();
 }
 
 function hideRubyOverride(encoded){
   const surface = decodeURIComponent(encoded);
   RUBY_OVERRIDES[surface] = {reading:'', hidden:true};
-  localStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
+  safeStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
   renderText();
 }
 
 function resetRubyOverride(encoded){
   delete RUBY_OVERRIDES[decodeURIComponent(encoded)];
-  localStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
+  safeStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
   renderText();
 }
 
@@ -1995,7 +2030,7 @@ function populateVoiceOptions(){
   if(!select || !allVoices.length){ if(field) field.style.display = 'none'; return; }
   const recommended = allVoices.filter(v=>RECOMMENDED_VOICE_PATTERN.test(v.name));
   const others = allVoices.filter(v=>!RECOMMENDED_VOICE_PATTERN.test(v.name));
-  const preferred = localStorage.getItem('reading_tts_voice') || '';
+  const preferred = safeStorage.getItem('reading_tts_voice') || '';
   const optionHtml = v => `<option value="${escapeHtml(v.name)}" ${v.name===preferred?'selected':''}>${escapeHtml(v.name)}${RECOMMENDED_VOICE_PATTERN.test(v.name)?' · 推荐':''}</option>`;
   select.innerHTML = (recommended.length ? recommended.map(optionHtml).join('') : '')
     + (recommended.length && others.length ? '<option disabled>──────</option>' : '')
@@ -2003,19 +2038,19 @@ function populateVoiceOptions(){
   if(field) field.style.display = 'flex';
   if(!preferred){
     const best = recommended[0] || allVoices.find(v=>v.localService) || allVoices[0];
-    if(best){ select.value = best.name; localStorage.setItem('reading_tts_voice', best.name); }
+    if(best){ select.value = best.name; safeStorage.setItem('reading_tts_voice', best.name); }
   }
 }
 
 function setPreferredVoice(name){
-  localStorage.setItem('reading_tts_voice', name || '');
+  safeStorage.setItem('reading_tts_voice', name || '');
 }
 
 function chooseJapaneseVoice(){
   const voices = window.speechSynthesis.getVoices();
   const japanese = voices.filter(voice=>/^ja[-_]/i.test(voice.lang));
   if(!japanese.length) return null;
-  const preferred = localStorage.getItem('reading_tts_voice');
+  const preferred = safeStorage.getItem('reading_tts_voice');
   if(preferred){
     const match = japanese.find(v=>v.name === preferred);
     if(match) return match;
@@ -2342,7 +2377,7 @@ async function loadVocab(){
       const res = await window.storage.get('reading_vocab_list', false);
       vocabData = res && res.value ? JSON.parse(res.value) : [];
     } else {
-      vocabData = JSON.parse(localStorage.getItem('reading_vocab_list') || '[]');
+      vocabData = JSON.parse(safeStorage.getItem('reading_vocab_list') || '[]');
     }
   }catch(e){ vocabData = []; }
   // 迁移旧数据:补齐SRS字段,避免之前版本存的数据缺字段报错
@@ -2360,7 +2395,7 @@ async function saveVocab(){
     if(window.storage && window.storage.set){
       await window.storage.set('reading_vocab_list', JSON.stringify(vocabData), false);
     } else {
-      localStorage.setItem('reading_vocab_list', JSON.stringify(vocabData));
+      safeStorage.setItem('reading_vocab_list', JSON.stringify(vocabData));
     }
   }catch(e){ console.error('保存生词本失败', e); }
 }
@@ -2513,9 +2548,9 @@ function exportLearningBackup(){
     vocab:vocabData,
     history:READING_HISTORY,
     rubyOverrides:RUBY_OVERRIDES,
-    preferredVoice:localStorage.getItem('reading_tts_voice') || '',
-    workspace:localStorage.getItem('reading_workspace') || 'reading',
-    levelResult:localStorage.getItem('reading_level_result') || ''
+    preferredVoice:safeStorage.getItem('reading_tts_voice') || '',
+    workspace:safeStorage.getItem('reading_workspace') || 'reading',
+    levelResult:safeStorage.getItem('reading_level_result') || ''
   };
   downloadTextFile(`dokedo-backup-${todayStamp()}.json`, JSON.stringify(backup, null, 2), 'application/json;charset=utf-8;');
 }
@@ -2529,9 +2564,9 @@ async function importLearningBackup(file){
     vocabData = Array.isArray(data.vocab) ? data.vocab : [];
     READING_HISTORY = Array.isArray(data.history) ? data.history.slice(0, 50) : [];
     RUBY_OVERRIDES = data.rubyOverrides && typeof data.rubyOverrides === 'object' ? data.rubyOverrides : {};
-    localStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
-    if(data.preferredVoice) localStorage.setItem('reading_tts_voice', data.preferredVoice);
-    if(data.levelResult) localStorage.setItem('reading_level_result', data.levelResult);
+    safeStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
+    if(data.preferredVoice) safeStorage.setItem('reading_tts_voice', data.preferredVoice);
+    if(data.levelResult) safeStorage.setItem('reading_level_result', data.levelResult);
     await saveVocab();
     saveReadingHistory();
     renderVocab();
@@ -2669,12 +2704,12 @@ loadVocab();
 
 // ---------------- 阅读历史、推荐来源、水平测试 ----------------
 function loadReadingHistory(){
-  try{ READING_HISTORY = JSON.parse(localStorage.getItem('reading_history') || '[]'); }
+  try{ READING_HISTORY = JSON.parse(safeStorage.getItem('reading_history') || '[]'); }
   catch{ READING_HISTORY = []; }
 }
 
 function saveReadingHistory(){
-  localStorage.setItem('reading_history', JSON.stringify(READING_HISTORY.slice(0, 50)));
+  safeStorage.setItem('reading_history', JSON.stringify(READING_HISTORY.slice(0, 50)));
 }
 
 function articleTitleFromText(text){
@@ -2759,7 +2794,7 @@ function clearReadingHistory(){
 function renderSourceDirectory(){
   const target = document.getElementById('sourceDirectory');
   if(!target) return;
-  const recommended = (localStorage.getItem('reading_level_result') || '').split('｜')[0] || '';
+  const recommended = (safeStorage.getItem('reading_level_result') || '').split('｜')[0] || '';
   target.innerHTML = READING_SOURCES.map(source => `
     <article class="source-directory-item ${recommended && (source.level.includes(recommended) || recommended.includes(source.level.split('-')[0])) ? 'recommended' : ''}">
       <span>${escapeHtml(source.level)}</span>
@@ -2793,7 +2828,7 @@ function renderLevelTest(){
       `).join('')}
     </fieldset>
   `).join('');
-  const saved = localStorage.getItem('reading_level_result');
+  const saved = safeStorage.getItem('reading_level_result');
   if(saved) showLevelResult(saved);
 }
 
@@ -2819,7 +2854,7 @@ function scoreLevelTest(){
   }
   const level = score <= 2 ? 'N5-N4' : score <= 4 ? 'N4-N3' : score <= 6 ? 'N3-N2' : score <= 8 ? 'N2' : 'N1';
   const result = `${level}｜答对 ${score}/${answered} 题`;
-  localStorage.setItem('reading_level_result', result);
+  safeStorage.setItem('reading_level_result', result);
   showLevelResult(result);
   renderSourceDirectory();
   document.getElementById('sourceDirectory')?.scrollIntoView({behavior:'smooth', block:'nearest'});
@@ -2896,7 +2931,7 @@ function openOnboarding(){
 }
 function dismissOnboarding(){
   document.getElementById('onboardingBanner')?.classList.add('is-hidden');
-  localStorage.setItem('reading_onboarding_dismissed', '1');
+  safeStorage.setItem('reading_onboarding_dismissed', '1');
 }
 function startOnboardingDemo(){
   switchWorkspace('reading');
@@ -2904,7 +2939,7 @@ function startOnboardingDemo(){
   dismissOnboarding();
   document.getElementById('output')?.scrollIntoView({ behavior:'smooth', block:'start' });
 }
-if(localStorage.getItem('reading_onboarding_dismissed')) dismissOnboarding();
+if(safeStorage.getItem('reading_onboarding_dismissed')) dismissOnboarding();
 
 async function initializeApp(){
   loadReadingHistory();
@@ -2917,7 +2952,7 @@ async function initializeApp(){
 
   renderGrammar();
   renderSourceDirectory();
-  const savedLevelResult = localStorage.getItem('reading_level_result');
+  const savedLevelResult = safeStorage.getItem('reading_level_result');
   if(savedLevelResult) showLevelResult(savedLevelResult);
   initKuromoji();
   document.getElementById('useKuromoji')?.addEventListener('change', renderText);
@@ -2945,7 +2980,7 @@ async function initializeApp(){
   document.addEventListener('keydown', event=>{
     if(event.key === 'Escape'){ closeExportModal(); closeImportPreview(); }
   });
-  switchWorkspace(localStorage.getItem('reading_workspace') || 'reading');
+  switchWorkspace(safeStorage.getItem('reading_workspace') || 'reading');
   renderTypingPractice();
   syncExportOptions();
 }
