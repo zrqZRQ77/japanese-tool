@@ -2955,7 +2955,7 @@ async function initializeApp(){
   renderSourceDirectory();
   const savedLevelResult = safeStorage.getItem('reading_level_result');
   if(savedLevelResult) showLevelResult(savedLevelResult);
-  setTokenizerStatus('自动标假名会在开始阅读时加载', '');
+  setTokenizerStatus('默认使用轻量词库，需要时可手动开启智能分词', '');
   document.getElementById('useKuromoji')?.addEventListener('change', renderText);
 
   if('speechSynthesis' in window){
