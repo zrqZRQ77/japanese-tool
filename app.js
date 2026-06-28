@@ -829,7 +829,8 @@ function getTokenInfo(token){
   const base = token.basic_form && token.basic_form !== '*' ? token.basic_form : surface;
   const dictInfo = DICT[surface] || DICT[base];
   if(dictInfo){
-    return { ...dictInfo, dictWord: DICT[surface] ? surface : base, source:'DICT' };
+    const dictWord = DICT[surface] ? surface : base;
+    return { ...dictInfo, dictWord, baseForm: base, lookupWord: dictWord, source:'DICT' };
   }
   const reading = katakanaToHiragana(token.reading && token.reading !== '*' ? token.reading : surface);
   const pos = [token.pos, token.pos_detail_1].filter(v=>v && v !== '*').join('・') || '已识别词';
@@ -839,6 +840,8 @@ function getTokenInfo(token){
     pos,
     meaning:`已识别为「${pos}」。当前内置词库还没有中文释义，可以用完整词典继续查询。`,
     dictWord: surface,
+    baseForm: base,
+    lookupWord: base,
     source:'kuromoji'
   };
 }
@@ -1652,8 +1655,21 @@ function resetRubyOverride(encoded){
   renderText();
 }
 
-async function lookupDictionary(encoded){
+function tokenLookupCandidates(tokenId, fallbackWord = ''){
+  const token = window.KUROMOJI_TOKEN_CACHE[tokenId];
+  const words = [
+    token?.info?.lookupWord,
+    token?.info?.baseForm,
+    token?.info?.dictWord,
+    token?.surface,
+    fallbackWord
+  ].map(word => String(word || '').trim()).filter(Boolean);
+  return [...new Set(words)];
+}
+
+async function lookupDictionary(encoded, tokenId = ''){
   const word = decodeURIComponent(encoded);
+  const candidates = tokenLookupCandidates(tokenId, word);
   const target = document.getElementById('dictionaryLookupResult');
   target.textContent = '正在查询词典……';
   if(DICT[word]){
@@ -1662,14 +1678,22 @@ async function lookupDictionary(encoded){
     return;
   }
   try{
-    let response = null;
-    for(const endpoint of apiEndpoints(`/api/dictionary?keyword=${encodeURIComponent(word)}`)){
-      try{ response = await fetch(endpoint); break; }catch{}
+    let lastError = null;
+    for(const candidate of candidates){
+      let response = null;
+      for(const endpoint of apiEndpoints(`/api/dictionary?keyword=${encodeURIComponent(candidate)}`)){
+        try{ response = await fetch(endpoint); break; }catch(error){ lastError = error; }
+      }
+      if(!response) continue;
+      const data = await response.json();
+      if(response.ok && data.ok && data.entries?.length){
+        const note = candidate !== word ? `<div class="lookup-status">已按原形「${escapeHtml(candidate)}」查询。</div>` : '';
+        target.innerHTML = note + data.entries.map(dictionaryEntryChinese).join('<br><br>');
+        return;
+      }
+      lastError = new Error(data.message || '未找到词条。');
     }
-    if(!response) throw new Error('无法连接词典服务。');
-    const data = await response.json();
-    if(!response.ok || !data.ok) throw new Error(data.message || '未找到词条。');
-    target.innerHTML = data.entries.map(dictionaryEntryChinese).join('<br><br>');
+    throw lastError || new Error('无法连接词典服务。');
   }catch(error){ target.textContent = error.message || '词典查询失败。'; }
 }
 
@@ -1725,15 +1749,24 @@ function showTokenDetail(tokenId, el){
 async function autoLookupTokenMeaning(word, tokenId){
   const target = document.getElementById(`tokenMeaning-${tokenId}`);
   if(!target) return;
+  const candidates = tokenLookupCandidates(tokenId, word);
   try{
-    let response = null;
-    for(const endpoint of apiEndpoints(`/api/dictionary?keyword=${encodeURIComponent(word)}`)){
-      try{ response = await fetch(endpoint); break; }catch{}
+    let lastError = null;
+    for(const candidate of candidates){
+      let response = null;
+      for(const endpoint of apiEndpoints(`/api/dictionary?keyword=${encodeURIComponent(candidate)}`)){
+        try{ response = await fetch(endpoint); break; }catch(error){ lastError = error; }
+      }
+      if(!response) continue;
+      const data = await response.json();
+      if(response.ok && data.ok && data.entries?.length){
+        const note = candidate !== word ? `<span style="color:var(--ink-soft);">按原形「${escapeHtml(candidate)}」查询。</span><br>` : '';
+        target.innerHTML = '<b>释义：</b>' + note + data.entries.slice(0, 3).map(dictionaryEntryChinese).join('<br>');
+        return;
+      }
+      lastError = new Error(data.message || '词典里没查到这个词。');
     }
-    if(!response) throw new Error('无法连接词典服务,请确认 backend 已启动。');
-    const data = await response.json();
-    if(!response.ok || !data.ok || !data.entries?.length) throw new Error(data.message || '词典里没查到这个词,可能是动词/形容词的活用形。');
-    target.innerHTML = '<b>释义：</b>' + data.entries.slice(0, 3).map(dictionaryEntryChinese).join('<br>');
+    throw lastError || new Error('无法连接词典服务,请确认 backend 已启动。');
   }catch(error){
     target.innerHTML = `<b>释义：</b><span style="color:var(--ink-soft);">${escapeHtml(error.message || '查询失败。')}</span> <button class="btn-ghost" style="padding:3px 8px;font-size:11px;" onclick='autoLookupTokenMeaning(${JSON.stringify(word)}, ${tokenId})'>重试</button>`;
   }
