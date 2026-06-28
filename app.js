@@ -1,3 +1,37 @@
+// ===== 全局错误处理 =====
+window.onerror = function(msg, url, line, col, error) {
+  console.error('Global error:', {msg, url, line, col, error});
+  showToast('发生了一个错误，请刷新页面重试', 'error');
+  return false;
+};
+
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('Unhandled promise rejection:', event.reason);
+  showToast('操作失败，请重试', 'error');
+});
+
+// 资源加载失败处理
+window.addEventListener('error', function(e) {
+  if (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK') {
+    console.error('Resource failed to load:', e.target.src || e.target.href);
+    showToast('部分资源加载失败，功能可能受限', 'warning');
+  }
+}, true);
+
+// Toast通知函数
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
 // ===== Hero首屏逻辑 =====
 function analyzeFromHero() {
   const text = document.getElementById('heroInputText').value.trim();
@@ -34,6 +68,14 @@ function openVocabPanel() {
 
 function closeVocabPanel() {
   document.getElementById('vocabPanelSlide').classList.remove('active');
+}
+
+function getAllVocab() {
+  return Array.isArray(vocabData) ? vocabData : [];
+}
+
+function isDue(vocabItem) {
+  return Number(vocabItem?.dueAt || 0) <= Date.now();
 }
 
 function syncVocabPanelData() {
@@ -567,6 +609,14 @@ async function extractUploadedFile(file){
   await ensureLearningData();
   const input = document.getElementById('documentFileInput');
   if(!file) return;
+
+  // 基本验证
+  if(file.size === 0){
+    showToast('文件为空，请选择有效的文件', 'error');
+    if(input) input.value = '';
+    return;
+  }
+
   document.body.classList.remove('first-visit');
   localStorage.setItem('hasUsedApp', 'true');
   switchWorkspace('reading');
@@ -574,11 +624,15 @@ async function extractUploadedFile(file){
   const limits = {'.pdf':20 * 1024 * 1024, '.docx':10 * 1024 * 1024, '.txt':2 * 1024 * 1024};
   if(!limits[extension]){
     setImportStatus('目前只支持 PDF、Word（DOCX）和 TXT 文件。', 'error');
+    showToast('不支持的文件格式', 'error');
     if(input) input.value = '';
     return;
   }
   if(file.size > limits[extension]){
-    setImportStatus(`${extension.slice(1).toUpperCase()} 文件超过大小限制。`, 'error');
+    const limitMB = Math.round(limits[extension] / 1024 / 1024);
+    const fileMB = Math.round(file.size / 1024 / 1024);
+    setImportStatus(`${extension.slice(1).toUpperCase()} 文件超过大小限制（${fileMB}MB > ${limitMB}MB）。`, 'error');
+    showToast(`文件过大：${fileMB}MB（限制${limitMB}MB）`, 'error');
     if(input) input.value = '';
     return;
   }
@@ -591,8 +645,10 @@ async function extractUploadedFile(file){
       if(!text) throw new Error('文件中没有可提取的正文。');
       setImportStatus(`已读取 ${file.name}，请检查内容`, 'ok');
       openImportPreview(text, {title:file.name, type:'txt'});
+      showToast('文件读取成功', 'success');
     }catch(error){
       setImportStatus(error.message || 'TXT 文件读取失败。', 'error');
+      showToast('文件读取失败', 'error');
     }finally{
       if(input) input.value = '';
     }
@@ -623,7 +679,10 @@ async function extractUploadedFile(file){
         lastError = error;
       }
     }
-    if(!result) throw new Error(`无法连接后端服务。${connectionHelp()}${lastError?.message ? ' 浏览器提示: ' + lastError.message : ''}`);
+    if(!result){
+      const errorMsg = `无法连接后端服务。${connectionHelp()}${lastError?.message ? ' 浏览器提示: ' + lastError.message : ''}`;
+      throw new Error(errorMsg);
+    }
     if(!result.response.ok || !result.data.ok) throw new Error(result.data.message || '文件提取失败。');
     const text = (result.data.text || '').trim();
     if(!text) throw new Error('文件中没有可提取的正文。');
@@ -633,8 +692,10 @@ async function extractUploadedFile(file){
     const cleanupInfo = cleanupMode === 'web-article' ? '，已按网页文章清理' : '';
     setImportStatus(`已读取 ${file.name}${pageInfo}${layoutInfo}${cleanupInfo}，请检查内容`, 'ok');
     openImportPreview(text, {title:file.name, type:result.data.type, cleanupMode, footnotes:result.data.footnotes || [], layoutWarnings:result.data.layoutWarnings || []});
+    showToast('文件读取成功', 'success');
   }catch(error){
     setImportStatus(`${error.message || '文件提取失败。'} 下一步可以试试：确认文件不是扫描图片版；PDF 可切换「普通资料 / 网页文章」后重新上传。`, 'error');
+    showToast('文件处理失败，请查看提示', 'error');
   }finally{
     if(input) input.value = '';
   }
@@ -2776,6 +2837,13 @@ function resetLevelTest(){
   localStorage.removeItem('reading_level_result');
   document.getElementById('levelResultBadge').textContent = '未测试';
   document.getElementById('levelResult').textContent = '完成后会推荐适合你的阅读等级，并在「找材料」里高亮相近来源。';
+  const test = document.getElementById('levelTest');
+  if(test){
+    test.innerHTML = '';
+    delete test.dataset.rendered;
+  }
+  const actions = document.getElementById('levelScoreActions');
+  if(actions) actions.style.display = 'none';
   renderSourceDirectory();
 }
 
@@ -2849,7 +2917,8 @@ async function initializeApp(){
 
   renderGrammar();
   renderSourceDirectory();
-  renderLevelTest();
+  const savedLevelResult = localStorage.getItem('reading_level_result');
+  if(savedLevelResult) showLevelResult(savedLevelResult);
   initKuromoji();
   document.getElementById('useKuromoji')?.addEventListener('change', renderText);
 
