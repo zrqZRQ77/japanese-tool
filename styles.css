@@ -1481,7 +1481,6 @@ body:not(.has-reading) .article-practice-body {
 .top-row,
 .app-header,
 .onboarding-banner,
-.reading-side,
 .app-header-simple {
   display: none !important;
 }

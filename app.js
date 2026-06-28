@@ -26,11 +26,6 @@ function resetToHero() {
   }
 }
 
-function showReading() {
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  event.target.classList.add('active');
-}
-
 // ===== 生词本面板逻辑 =====
 function openVocabPanel() {
   document.getElementById('vocabPanelSlide').classList.add('active');
@@ -724,6 +719,9 @@ async function renderText(){
 
   const useKuromoji = document.getElementById('useKuromoji')?.checked;
   if(useKuromoji){
+    if(!KUROMOJI_TOKENIZER){
+      out.innerHTML = '<span style="color:var(--ink-soft);font-size:14.5px;">正在加载分词引擎，第一次使用需要几秒钟……</span>';
+    }
     const tokenizer = await initKuromoji();
     if(tokenizer){
       renderWithKuromoji(raw, tokenizer, out, statsBar);
