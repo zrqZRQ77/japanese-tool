@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>按钮测试</title>
+<link rel="stylesheet" href="styles.css?v=20260628-4">
+</head>
+<body data-view="reading" class="first-visit">
+
+  <!-- Hero 首屏 -->
+  <div class="hero-intro" id="heroIntro">
+    <div class="hero-brand">
+      <div class="brand-mark-large">読</div>
+      <h1 class="hero-title">読める、わかる、続けられる</h1>
+      <p class="hero-subtitle">日语阅读辅助工具</p>
+    </div>
+
+    <div class="hero-input">
+      <textarea id="heroInputText" placeholder="粘贴日语原文、文章链接，或上传文件"></textarea>
+      <div class="hero-actions">
+        <button class="btn-primary-large" onclick="alert('开始分析按钮被点击了！')">
+          <span class="btn-icon-text">✨</span>
+          开始分析
+        </button>
+        <button class="btn-ghost-large" onclick="alert('试试示例按钮被点击了！')">
+          试试示例
+        </button>
+        <button class="btn-ghost-large" onclick="alert('上传文件按钮被点击了！')">
+          <span class="btn-icon-text">📄</span>
+          上传文件
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-features">
+      <span>支持 PDF / Word / TXT</span>
+      <span>自动标注假名和释义</span>
+      <span>一键导出 Anki 牌组</span>
+    </div>
+  </div>
+
+</body>
+</html>

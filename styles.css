@@ -215,6 +215,62 @@ body:not(.first-visit) .hero-intro { display: none !important; }
   margin: 0 auto;
 }
 
+body[data-view="reading"] .grammar-section,
+body[data-view="reading"] .typing-section,
+body[data-view="reading"] .retell-section,
+body[data-view="reading"] .discover-section,
+body[data-view="reading"] .test-section,
+body[data-view="reading"] .history-section,
+body[data-view="grammar"] .reading-main,
+body[data-view="grammar"] .typing-section,
+body[data-view="grammar"] .retell-section,
+body[data-view="grammar"] .discover-section,
+body[data-view="grammar"] .test-section,
+body[data-view="grammar"] .history-section,
+body[data-view="typing"] .reading-main,
+body[data-view="typing"] .grammar-section,
+body[data-view="typing"] .retell-section,
+body[data-view="typing"] .discover-section,
+body[data-view="typing"] .test-section,
+body[data-view="typing"] .history-section,
+body[data-view="retell"] .reading-main,
+body[data-view="retell"] .grammar-section,
+body[data-view="retell"] .typing-section,
+body[data-view="retell"] .discover-section,
+body[data-view="retell"] .test-section,
+body[data-view="retell"] .history-section,
+body[data-view="discover"] .reading-main,
+body[data-view="discover"] .grammar-section,
+body[data-view="discover"] .typing-section,
+body[data-view="discover"] .retell-section,
+body[data-view="discover"] .test-section,
+body[data-view="discover"] .history-section,
+body[data-view="test"] .reading-main,
+body[data-view="test"] .grammar-section,
+body[data-view="test"] .typing-section,
+body[data-view="test"] .retell-section,
+body[data-view="test"] .discover-section,
+body[data-view="test"] .history-section,
+body[data-view="history"] .reading-main,
+body[data-view="history"] .grammar-section,
+body[data-view="history"] .typing-section,
+body[data-view="history"] .retell-section,
+body[data-view="history"] .discover-section,
+body[data-view="history"] .test-section {
+  display: none !important;
+}
+
+body[data-view="grammar"] .grammar-section,
+body[data-view="typing"] .typing-section,
+body[data-view="retell"] .retell-section,
+body[data-view="discover"] .discover-section,
+body[data-view="test"] .test-section,
+body[data-view="history"] .history-section {
+  display: block;
+  max-width: 900px;
+  margin: 48px auto;
+}
+
 /* 左侧边栏 */
 .app-sidebar {
   width: 240px;
@@ -310,6 +366,35 @@ body.first-visit .app-sidebar {
   width: 3px;
   height: 24px;
   background: var(--shusha);
+}
+
+.nav-vocab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-badge {
+  float: none !important;
+  min-width: 20px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: var(--shusha);
+  color: white;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.nav-item span {
+  float: right;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  text-align: center;
+  font-size: 11px;
 }
 
 .vocab-badge {
@@ -572,8 +657,8 @@ button:disabled {
 
 .btnrow {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 12px;
+  margin: 16px 0;
   flex-wrap: wrap;
 }
 
@@ -750,6 +835,365 @@ button:disabled {
 
 .btn-icon:hover {
   color: var(--sumi);
+}
+
+/* 生词本滑动面板内容区 */
+.vocab-section {
+  margin-bottom: 32px;
+}
+
+.review-section {
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sumi);
+}
+
+.section-title b {
+  color: var(--shusha);
+  font-size: 16px;
+}
+
+.review-stats {
+  font-size: 14px;
+  color: var(--ainezumi);
+  margin-bottom: 12px;
+}
+
+.review-stats b {
+  color: var(--sumi);
+  font-weight: 600;
+}
+
+.review-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-ghost-small {
+  padding: 6px 12px;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--sumi);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-ghost-small:hover {
+  background: rgba(200, 72, 67, 0.05);
+  border-color: var(--shusha);
+  color: var(--shusha);
+}
+
+.vocab-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--ainezumi);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.vocab-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ===== 语法词典样式 ===== */
+.grammar-search {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 24px;
+  transition: border-color 0.2s;
+}
+
+.grammar-search:focus {
+  outline: none;
+  border-color: var(--shusha);
+}
+
+.grammar-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.grammar-item {
+  padding: 16px;
+  background: var(--kinari);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.grammar-item:hover {
+  border-color: var(--shusha);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.grammar-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sumi);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grammar-title .tag {
+  font-size: 11px;
+  padding: 2px 8px;
+}
+
+.grammar-content {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--sumi);
+}
+
+.grammar-content p {
+  margin: 8px 0;
+}
+
+.grammar-example {
+  margin: 12px 0;
+  padding: 12px;
+  background: rgba(200, 72, 67, 0.03);
+  border-left: 3px solid var(--shusha);
+  border-radius: 2px;
+}
+
+.grammar-example-ja {
+  font-size: 15px;
+  color: var(--sumi);
+  margin-bottom: 4px;
+}
+
+.grammar-example-zh {
+  font-size: 13px;
+  color: var(--ainezumi);
+}
+
+/* ===== 找材料页面样式 ===== */
+.discover-sources {
+  display: grid;
+  gap: 12px;
+}
+
+.source-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--kinari);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.source-card:hover {
+  border-color: var(--shusha);
+  background: rgba(200, 72, 67, 0.02);
+}
+
+.source-card b {
+  font-size: 15px;
+  color: var(--sumi);
+  font-weight: 600;
+}
+
+.source-card span {
+  font-size: 13px;
+  color: var(--ainezumi);
+}
+
+/* ===== 水平测试页面样式 ===== */
+.test-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.status-label {
+  font-size: 14px;
+  color: var(--ainezumi);
+}
+
+.status-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--shusha);
+}
+
+.test-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* ===== 历史记录页面样式 ===== */
+.history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.history-item {
+  padding: 16px;
+  background: var(--kinari);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.history-item:hover {
+  border-color: var(--shusha);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.history-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sumi);
+  margin-bottom: 8px;
+}
+
+.history-meta {
+  font-size: 13px;
+  color: var(--ainezumi);
+}
+
+.history-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ainezumi);
+}
+
+/* ===== 打字练习页面样式 ===== */
+.typing-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr 300px;
+}
+
+.typing-prompt {
+  padding: 20px;
+  background: var(--kinari);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.typing-meta {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.typing-chip {
+  padding: 4px 10px;
+  background: rgba(200, 72, 67, 0.1);
+  color: var(--shusha);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.typing-cn {
+  font-size: 15px;
+  color: var(--sumi);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.typing-answer {
+  font-size: 14px;
+  color: var(--ainezumi);
+}
+
+.typing-input {
+  width: 100%;
+  min-height: 120px;
+  padding: 16px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  font-size: 15px;
+  font-family: 'Noto Sans JP', sans-serif;
+  resize: vertical;
+  margin-bottom: 16px;
+}
+
+.typing-input:focus {
+  outline: none;
+  border-color: var(--shusha);
+}
+
+.typing-result {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--kinari);
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.typing-list {
+  display: grid;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.typing-list button {
+  text-align: left;
+  padding: 12px;
+  background: var(--kinari);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.typing-list button:hover {
+  border-color: var(--shusha);
+  background: rgba(200, 72, 67, 0.02);
+}
+
+.typing-list button.active {
+  border-color: var(--shusha);
+  background: rgba(200, 72, 67, 0.05);
+}
+
+.typing-score {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--shusha);
+}
+
+@media (max-width: 768px) {
+  .typing-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ===== 弹窗和模态框 ===== */
@@ -956,6 +1400,27 @@ button:disabled {
   line-height: 1.6;
 }
 
+.article-practice-empty {
+  border: 1px solid var(--border);
+  background: var(--shironeri);
+  border-radius: 4px;
+  padding: 24px;
+  margin-top: 16px;
+}
+
+.article-practice-empty p {
+  margin: 0 0 14px;
+  color: var(--ainezumi);
+}
+
+body.has-reading .article-practice-empty {
+  display: none;
+}
+
+body:not(.has-reading) .article-practice-body {
+  display: none;
+}
+
 .export-status {
   font-size: 13px;
   color: var(--ainezumi);
@@ -1019,4 +1484,61 @@ button:disabled {
 .reading-side,
 .app-header-simple {
   display: none !important;
+}
+
+/* ===== 练习页面样式 ===== */
+.practice-switch {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--border);
+}
+
+.workspace-tab {
+  flex: 1;
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--ainezumi);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: -2px;
+}
+
+.workspace-tab:hover {
+  color: var(--sumi);
+  background: rgba(200, 72, 67, 0.05);
+}
+
+.workspace-tab.active {
+  color: var(--shusha);
+  border-bottom-color: var(--shusha);
+  font-weight: 600;
+}
+
+.article-practice-empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--ainezumi);
+}
+
+.article-practice-empty p {
+  margin-bottom: 24px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.article-practice-body {
+  display: none;
+}
+
+body.has-reading .article-practice-empty {
+  display: none;
+}
+
+body.has-reading .article-practice-body {
+  display: block;
 }

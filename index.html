@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20260628-2">
+<link rel="stylesheet" href="styles.css?v=20260628-9">
 </head>
 <body data-view="reading" class="first-visit">
 <div class="wrap">
@@ -24,14 +24,14 @@
     </div>
 
     <div class="hero-input">
-      <textarea id="heroInputText" placeholder="粘贴日语原文、文章链接，或上传文件"></textarea>
+      <textarea id="heroInputText" placeholder="粘贴日语文本或文章链接"></textarea>
       <div class="hero-actions">
         <button class="btn-primary-large" onclick="analyzeFromHero()">
           <span class="btn-icon-text">✨</span>
-          开始分析
+          开始阅读
         </button>
         <button class="btn-ghost-large" onclick="loadSampleFromHero()">
-          试试示例
+          用示例开始
         </button>
         <button class="btn-ghost-large" onclick="document.getElementById('heroFileInput').click()">
           <span class="btn-icon-text">📄</span>
@@ -61,18 +61,17 @@
       </div>
 
       <nav class="sidebar-nav">
-        <button class="nav-item active">阅读</button>
-        <button class="nav-item">练习</button>
-        <button class="nav-item">语法</button>
-        <button class="nav-item">历史</button>
-      </nav>
-
-      <div style="padding: 0 24px;">
-        <button class="vocab-badge" onclick="openVocabPanel()">
-          <span>生词本</span>
-          <span id="vocabBadgeCount">0</span>
+        <button class="nav-item active" data-view="reading" onclick="switchWorkspace('reading')">阅读</button>
+        <button class="nav-item" data-view="retell" onclick="switchWorkspace('retell')">练习</button>
+        <button class="nav-item nav-vocab" onclick="openVocabPanel()">
+          生词本
+          <span class="nav-badge" id="vocabBadgeCount">0</span>
         </button>
-      </div>
+        <button class="nav-item" data-view="discover" onclick="switchWorkspace('discover')">找材料</button>
+        <button class="nav-item" data-view="test" onclick="switchWorkspace('test')">水平测试</button>
+        <button class="nav-item" data-view="history" onclick="switchWorkspace('history')">历史</button>
+        <button class="nav-item" data-view="grammar" onclick="switchWorkspace('grammar')">语法词典</button>
+      </nav>
     </aside>
 
     <div class="wrap">
@@ -92,14 +91,14 @@
             <div class="source-dropzone">
               <textarea id="inputText" placeholder="粘贴日语原文，或粘贴一篇日语文章链接；也可以上传 PDF / Word / TXT 资料。"></textarea>
               <div class="source-actions">
-                <button class="btn-primary" onclick="analyzeSourceInput()">识别资料</button>
+                <button class="btn-primary" onclick="analyzeSourceInput()">开始阅读</button>
                 <button class="btn-ghost" type="button" onclick="document.getElementById('documentFileInput').click()">上传文件</button>
-                <button class="btn-ghost" onclick="loadSample()">载入示例</button>
+                <button class="btn-ghost" onclick="loadSample()">用示例开始</button>
               </div>
               <input id="articleUrlInput" type="hidden">
               <input id="documentFileInput" type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" hidden onchange="extractUploadedFile(this.files[0])">
               <div class="source-help">支持：直接文本、文章链接、PDF（20 MB）、Word / DOCX（10 MB）、TXT（2 MB）。</div>
-              <div class="import-status" id="importStatus">把资料放进来后，点击「识别资料」。</div>
+              <div class="import-status" id="importStatus">把资料放进来后，点击「开始阅读」。</div>
             </div>
 
             <details class="import-disclosure compact-options">
@@ -156,7 +155,7 @@
           <div class="reading-hint" id="readingHint" style="display:none;">点击带颜色的词语，查看读音和释义。</div>
 
           <div class="reading-output" id="output">
-            <span style="color:var(--ink-soft);font-size:14.5px;">点击「载入示例」看效果 →</span>
+            <span style="color:var(--ink-soft);font-size:14.5px;">点击「用示例开始」看效果 →</span>
           </div>
         </div>
       </div>
@@ -221,8 +220,8 @@
     <div class="card typing-section">
       <div class="card-pad">
         <div class="practice-switch">
-          <button class="workspace-tab" type="button" onclick="switchWorkspace('retell')">理解练习</button>
-          <button class="workspace-tab active" type="button" onclick="switchWorkspace('typing')">打字练习</button>
+          <button class="workspace-tab" data-view="retell" type="button" onclick="switchWorkspace('retell')">理解练习</button>
+          <button class="workspace-tab active" data-view="typing" type="button" onclick="switchWorkspace('typing')">打字练习</button>
         </div>
         <div class="card-head">
           <span class="card-title"><span class="tag">输出</span>日语打字练习</span>
@@ -258,61 +257,70 @@
     <div class="card retell-section">
       <div class="card-pad">
         <div class="practice-switch">
-          <button class="workspace-tab active" type="button" onclick="switchWorkspace('retell')">理解练习</button>
-          <button class="workspace-tab" type="button" onclick="switchWorkspace('typing')">打字练习</button>
+          <button class="workspace-tab active" data-view="retell" type="button" onclick="switchWorkspace('retell')">理解练习</button>
+          <button class="workspace-tab" data-view="typing" type="button" onclick="switchWorkspace('typing')">打字练习</button>
         </div>
         <div class="card-head"><span class="card-title"><span class="tag">理解</span>挖空自测</span></div>
-        <div class="lookup-status" id="clozeAdvice">先在「阅读」标签里分析一段文本，再回来生成挖空测试。</div>
-        <div class="btnrow">
-          <button class="btn-primary" onclick="generateCloze()">生成挖空测试</button>
-          <button class="btn-ghost" onclick="checkCloze()">检查答案</button>
-          <button class="btn-ghost" onclick="revealCloze()">显示全部答案</button>
+        <div class="lookup-status" id="clozeAdvice">在阅读页完成文章分析后，这里会自动解锁挖空练习。</div>
+        <div class="article-practice-empty">
+          <p>理解练习会使用你刚读过的文章生成题目。</p>
+          <button class="btn-primary" onclick="switchWorkspace('reading')">去阅读页导入文章</button>
         </div>
-        <div class="reading-output" id="clozeOutput" style="min-height:120px;">
-          <span style="color:var(--ink-soft);font-size:14.5px;">点击「生成挖空测试」，会把刚才读过的文章里的生词挖空，凭上下文回忆并填写。</span>
+        <div class="article-practice-body">
+          <div class="btnrow">
+            <button class="btn-primary" onclick="generateCloze()">生成挖空测试</button>
+            <button class="btn-ghost" onclick="checkCloze()">检查答案</button>
+            <button class="btn-ghost" onclick="revealCloze()">显示全部答案</button>
+          </div>
+          <div class="reading-output" id="clozeOutput" style="min-height:120px;">
+            <span style="color:var(--ink-soft);font-size:14.5px;">点击「生成挖空测试」，会把刚才读过的文章里的生词挖空，凭上下文回忆并填写。</span>
+          </div>
+          <div class="typing-score" id="clozeScore" style="margin-top:10px;"></div>
         </div>
-        <div class="typing-score" id="clozeScore" style="margin-top:10px;"></div>
       </div>
     </div>
 
     <div class="card retell-section">
       <div class="card-pad">
-        <div class="card-head"><span class="card-title"><span class="tag">输出</span>口语复述 · 对照原文自查</span></div>
-        <div class="lookup-status" id="retellAdvice">先在「阅读」标签里分析一段文本，再回来练习复述。</div>
-        <div class="btnrow">
-          <button class="btn-ghost" onclick="speakOriginalForRetell()">朗读原文</button>
-          <button class="btn-primary" id="retellRecordBtn" onclick="toggleRetellRecording()">开始录音复述</button>
+        <div class="card-head"><span class="card-title"><span class="tag">输出</span>口语复述</span></div>
+        <div class="lookup-status" id="retellAdvice">在阅读页完成文章分析后，这里会自动解锁复述练习。</div>
+        <div class="article-practice-empty">
+          <p>复述练习需要先有一篇已分析的阅读材料。</p>
+          <button class="btn-primary" onclick="switchWorkspace('reading')">去阅读页导入文章</button>
         </div>
-        <div class="typing-result" id="retellResult"></div>
+        <div class="article-practice-body">
+          <div class="btnrow">
+            <button class="btn-ghost" onclick="speakOriginalForRetell()">朗读原文</button>
+            <button class="btn-primary" id="retellRecordBtn" onclick="toggleRetellRecording()">开始录音复述</button>
+          </div>
+          <div class="typing-result" id="retellResult"></div>
+        </div>
       </div>
     </div>
 
     <div class="card discover-section">
       <div class="card-pad">
-        <div class="card-head"><span class="card-title"><span class="tag">开始</span>推荐阅读与水平测试</span></div>
-        <div class="discover-grid">
-          <section class="tool-panel">
-            <div class="tool-panel-head">
-              <h2>3分钟快速定位水平</h2>
-              <p>通过简短测试，找到适合你的阅读材料</p>
-            </div>
-            <div class="tool-panel-body">
-              <div class="test-status" id="testStatus">
-                <span class="status-label">状态：</span>
-                <span class="status-value">未测试</span>
-              </div>
-              <div class="test-actions" id="testActions">
-                <button class="btn-primary" onclick="startLevelTest()">开始水平测试</button>
-              </div>
-            </div>
-          </section>
-          <section class="tool-panel">
-            <div class="tool-panel-head">
-              <h2>按等级找阅读材料</h2>
-              <p>精选网站，可复制链接到阅读页</p>
-            </div>
-            <div class="discover-sources" id="discoverSources"></div>
-          </section>
+        <div class="card-head"><span class="card-title"><span class="tag">来源</span>找阅读材料</span></div>
+        <div class="lookup-status" style="margin-bottom:12px;">可以按等级挑一个来源，把链接带回阅读页试读。</div>
+        <div class="discover-sources" id="sourceDirectory"></div>
+      </div>
+    </div>
+
+    <div class="card test-section">
+      <div class="card-pad">
+        <div class="card-head"><span class="card-title"><span class="tag">测试</span>3分钟快速定位水平</span></div>
+        <div class="test-status">
+          <span class="status-label">状态：</span>
+          <span class="status-value" id="levelResultBadge">未测试</span>
+        </div>
+        <div class="test-actions">
+          <button class="btn-primary" onclick="startLevelTest()">开始水平测试</button>
+          <button class="btn-ghost" onclick="resetLevelTest()">重新测试</button>
+        </div>
+        <div class="lookup-status" id="levelResult">完成后会推荐适合你的阅读等级，并在「找材料」里高亮相近来源。</div>
+        <div id="levelTest"></div>
+        <div class="btnrow" id="levelScoreActions" style="display:none;">
+          <button class="btn-primary" onclick="scoreLevelTest()">查看结果</button>
         </div>
       </div>
     </div>
@@ -325,6 +333,7 @@
             <button class="btn-ghost" onclick="backupData()" style="padding:6px 12px;font-size:12px;">备份数据</button>
             <button class="btn-ghost" onclick="restoreData()" style="padding:6px 12px;font-size:12px;">恢复备份</button>
             <button class="btn-ghost" onclick="clearHistory()" style="padding:6px 12px;font-size:12px;color:var(--trap);">清空历史</button>
+            <input id="backupFileInput" type="file" accept="application/json,.json" hidden onchange="importLearningBackup(this.files[0])">
           </div>
         </div>
         <div class="history-list" id="historyList"></div>
@@ -348,9 +357,10 @@
     <button class="btn-icon" onclick="closeMenu()" aria-label="关闭菜单">×</button>
   </div>
   <nav class="menu-nav">
-    <button onclick="closeMenu();switchWorkspace('vocab')">📚 生词本与复习</button>
-    <button onclick="closeMenu();switchWorkspace('retell')">✍️ 练习与测试</button>
-    <button onclick="closeMenu();switchWorkspace('discover')">🎯 推荐与水平测试</button>
+    <button onclick="closeMenu();openVocabPanel()">📚 生词本与复习</button>
+    <button onclick="closeMenu();switchWorkspace('retell')">✍️ 练习</button>
+    <button onclick="closeMenu();switchWorkspace('discover')">🎯 找材料</button>
+    <button onclick="closeMenu();switchWorkspace('test')">📝 水平测试</button>
     <button onclick="closeMenu();switchWorkspace('history')">📖 历史记录</button>
     <button onclick="closeMenu();switchWorkspace('grammar')">📕 语法词典</button>
     <hr>
@@ -485,6 +495,6 @@
   </div>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=20260628-6"></script>
 </body>
 </html>

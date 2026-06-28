@@ -21,7 +21,7 @@ function resetToHero() {
   if (confirm('返回首页将清空当前内容，确定吗？')) {
     document.body.classList.add('first-visit');
     document.getElementById('heroInputText').value = '';
-    document.getElementById('output').innerHTML = '<span style="color:var(--ainezumi);font-size:14.5px;">点击「载入示例」查看效果</span>';
+    document.getElementById('output').innerHTML = '<span style="color:var(--ainezumi);font-size:14.5px;">点击「用示例开始」查看效果</span>';
     document.body.classList.remove('has-reading');
   }
 }
@@ -213,6 +213,7 @@ function initKuromoji(){
 async function loadSample(){
   await ensureLearningData();
   document.getElementById('inputText').value = SAMPLE_TEXT;
+  switchWorkspace('reading');
   await renderText();
 }
 
@@ -274,16 +275,24 @@ function setImportStatus(message, type = ''){
 
 let pendingImportMeta = null;
 function switchWorkspace(view){
-  if(!['reading','vocab','typing','grammar','retell','discover','history'].includes(view)) return;
+  if(view === 'vocab'){
+    openVocabPanel();
+    return;
+  }
+  if(!['reading','typing','grammar','retell','discover','test','history'].includes(view)) return;
   document.body.dataset.view = view;
-  document.querySelectorAll('.top-row .workspace-tab').forEach(button=>{
-    const isPractice = button.dataset.view === 'retell' && view === 'typing';
-    button.classList.toggle('active', button.dataset.view === view || isPractice);
+  document.querySelectorAll('.app-sidebar .nav-item').forEach(button=>{
+    const navView = button.dataset.view;
+    const isPractice = (view === 'typing' || view === 'retell') && navView === 'retell';
+    button.classList.toggle('active', navView === view || isPractice);
+  });
+  document.querySelectorAll('.workspace-tab').forEach(button=>{
+    button.classList.toggle('active', button.dataset.view === view);
   });
   localStorage.setItem('reading_workspace', view);
   if(view === 'typing') renderTypingPractice();
   if(view === 'retell') refreshRetellAdvice();
-  if(view === 'discover'){ renderSourceDirectory(); renderLevelTest(); }
+  if(view === 'discover') renderSourceDirectory();
   if(view === 'history') renderReadingHistory();
 }
 
@@ -553,6 +562,9 @@ async function extractUploadedFile(file){
   await ensureLearningData();
   const input = document.getElementById('documentFileInput');
   if(!file) return;
+  document.body.classList.remove('first-visit');
+  localStorage.setItem('hasUsedApp', 'true');
+  switchWorkspace('reading');
   const extension = (file.name.match(/\.[^.]+$/)?.[0] || '').toLowerCase();
   const limits = {'.pdf':20 * 1024 * 1024, '.docx':10 * 1024 * 1024, '.txt':2 * 1024 * 1024};
   if(!limits[extension]){
@@ -687,7 +699,7 @@ async function renderText(){
   const out = document.getElementById('output');
   const statsBar = document.getElementById('statsBar');
   if(!raw){
-    out.innerHTML = '<span style="color:var(--ink-soft);font-size:14.5px;">请先粘贴文本,或点击「载入示例文本」。</span>';
+    out.innerHTML = '<span style="color:var(--ink-soft);font-size:14.5px;">请先粘贴文本，或点击「用示例开始」。</span>';
     statsBar.innerHTML = '';
     CURRENT_ARTICLE_TEXT = '';
     refreshRetellAdvice();
@@ -2414,6 +2426,18 @@ async function importLearningBackup(file){
   }
 }
 
+function backupData(){
+  exportLearningBackup();
+}
+
+function restoreData(){
+  document.getElementById('backupFileInput')?.click();
+}
+
+function clearHistory(){
+  clearReadingHistory();
+}
+
 // 一键清空生词本
 function clearAllVocab() {
   if (vocabData.length === 0) return;
@@ -2635,7 +2659,7 @@ function useSourceUrl(encodedUrl){
   document.getElementById('inputText').value = url;
   switchWorkspace('reading');
   editSourceText();
-  setImportStatus('已填入推荐来源链接。确认是具体文章页后，点击「识别资料」。');
+  setImportStatus('已填入推荐来源链接。确认是具体文章页后，点击「开始阅读」。');
 }
 
 function renderLevelTest(){
@@ -2652,6 +2676,13 @@ function renderLevelTest(){
   `).join('');
   const saved = localStorage.getItem('reading_level_result');
   if(saved) showLevelResult(saved);
+}
+
+function startLevelTest(){
+  renderLevelTest();
+  const actions = document.getElementById('levelScoreActions');
+  if(actions) actions.style.display = 'flex';
+  document.getElementById('levelTest')?.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 function scoreLevelTest(){
@@ -2679,14 +2710,14 @@ function showLevelResult(result){
   const badge = document.getElementById('levelResultBadge');
   const box = document.getElementById('levelResult');
   if(badge) badge.textContent = result.split('｜')[0] || result;
-  if(box) box.innerHTML = `建议从 <b>${escapeHtml(result.split('｜')[0] || result)}</b> 的材料开始。右侧已高亮相近等级的来源，可以复制到阅读页试读。<br><span>${escapeHtml(result)}</span>`;
+  if(box) box.innerHTML = `建议从 <b>${escapeHtml(result.split('｜')[0] || result)}</b> 的材料开始。<br><span>${escapeHtml(result)}</span><br><button class="btn-ghost" onclick="switchWorkspace('discover')" style="margin-top:12px;padding:6px 16px;font-size:13px;">前往「找材料」查看推荐</button>`;
 }
 
 function resetLevelTest(){
   document.querySelectorAll('#levelTest input[type="radio"]').forEach(input=>input.checked = false);
   localStorage.removeItem('reading_level_result');
   document.getElementById('levelResultBadge').textContent = '未测试';
-  document.getElementById('levelResult').textContent = '完成后会推荐适合你的阅读等级和材料入口。';
+  document.getElementById('levelResult').textContent = '完成后会推荐适合你的阅读等级，并在「找材料」里高亮相近来源。';
   renderSourceDirectory();
 }
 
