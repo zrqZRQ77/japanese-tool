@@ -19,7 +19,7 @@ body {
   margin: 0;
   background: var(--kinari);
   color: var(--sumi);
-  font-family: 'Inter', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
   font-size: 15px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -47,13 +47,13 @@ body {
   background: var(--sumi);
   color: var(--kinari);
   border: 2px solid var(--sumi);
-  font-family: 'Noto Serif JP', 'Noto Serif SC', serif;
+  font-family: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', 'Noto Serif SC', 'SimSun', serif;
   font-size: 36px;
   font-weight: 500;
 }
 
 .hero-title {
-  font-family: 'Noto Serif JP', 'Noto Serif SC', serif;
+  font-family: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', 'Noto Serif SC', 'SimSun', serif;
   font-size: 28px;
   font-weight: 500;
   color: var(--sumi);
@@ -82,7 +82,7 @@ body {
   font-size: 15px;
   background: var(--shironeri);
   color: var(--sumi);
-  font-family: 'Noto Sans JP', 'Noto Sans SC', sans-serif;
+  font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
   resize: vertical;
   transition: border-color 0.2s;
 }
@@ -131,6 +131,11 @@ body {
   opacity: 0.7;
 }
 
+.btn-primary-large:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .btn-ghost-large {
   background: transparent;
   color: var(--sumi);
@@ -149,6 +154,12 @@ body {
 
 .btn-ghost-large:hover {
   border-color: var(--sumi);
+}
+
+.btn-ghost-large:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--border);
 }
 
 .hero-features {
@@ -450,7 +461,7 @@ body.first-visit .app-sidebar {
 
 /* 标题签名元素 */
 .section-title {
-  font-family: 'Noto Serif JP', 'Noto Serif SC', serif;
+  font-family: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', 'Noto Serif SC', 'SimSun', serif;
   font-size: 24px;
   font-weight: 500;
   color: var(--sumi);
@@ -563,7 +574,7 @@ body.first-visit .app-sidebar {
   background: white;
   border-radius: 4px;
   padding: 12px;
-  font-family: 'Noto Sans JP', 'Noto Sans SC', sans-serif;
+  font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
   font-size: 15px;
   color: var(--sumi);
   resize: vertical;
@@ -645,6 +656,11 @@ button:disabled {
   opacity: 0.85;
 }
 
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .btn-ghost {
   background: transparent;
   color: var(--sumi);
@@ -653,6 +669,37 @@ button:disabled {
 
 .btn-ghost:hover {
   border-color: var(--sumi);
+}
+
+.btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--border);
+}
+
+/* 按钮loading状态 */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
 }
 
 .btnrow {
@@ -896,6 +943,11 @@ button:disabled {
   background: rgba(200, 72, 67, 0.05);
   border-color: var(--shusha);
   color: var(--shusha);
+}
+
+.btn-ghost-small:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .vocab-empty {
