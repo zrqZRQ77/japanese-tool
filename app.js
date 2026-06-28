@@ -20,6 +20,7 @@ window.addEventListener('error', function(e) {
 
 // Toast通知函数
 function showToast(message, type = 'info') {
+  if(!document.body) return;
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.textContent = message;
@@ -36,7 +37,7 @@ function showToast(message, type = 'info') {
 const safeStorage = {
   setItem: function(key, value) {
     try {
-      safeStorage.setItem(key, value);
+      localStorage.setItem(key, value);
       return true;
     } catch (e) {
       if (e.name === 'QuotaExceededError') {
@@ -50,7 +51,7 @@ const safeStorage = {
   },
   getItem: function(key) {
     try {
-      return safeStorage.getItem(key);
+      return localStorage.getItem(key);
     } catch (e) {
       console.error('localStorage读取失败:', e);
       return null;
@@ -2954,7 +2955,7 @@ async function initializeApp(){
   renderSourceDirectory();
   const savedLevelResult = safeStorage.getItem('reading_level_result');
   if(savedLevelResult) showLevelResult(savedLevelResult);
-  initKuromoji();
+  setTokenizerStatus('自动标假名会在开始阅读时加载', '');
   document.getElementById('useKuromoji')?.addEventListener('change', renderText);
 
   if('speechSynthesis' in window){
