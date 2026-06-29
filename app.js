@@ -239,6 +239,7 @@ function ensureLearningData(){
 let currentTypingIndex = 0;
 let currentVocabPracticeIndex = 0;
 let vocabPracticeAnswerVisible = false;
+let articlePracticeMode = 'cloze';
 let CURRENT_ARTICLE_TEXT = '';
 let CLOZE_ITEMS = [];
 let RETELL_RECOGNITION = null;
@@ -2213,6 +2214,8 @@ function refreshPracticeStatus(){
   const articleLock = document.getElementById('articleModuleLock');
   const vocabLock = document.getElementById('vocabModuleLock');
   const vocabAdvice = document.getElementById('vocabPracticeAdvice');
+  const startArticle = document.getElementById('startArticlePracticeBtn');
+  const startVocab = document.getElementById('startVocabPracticeBtn');
 
   if(articleStatus){
     articleStatus.textContent = hasText ? '文章理解：已解锁' : '文章理解：未解锁';
@@ -2235,6 +2238,42 @@ function refreshPracticeStatus(){
       ? `生词本共有 ${vocabCount} 个词，其中 ${dueCount} 个到期复习。这里可以先做快速自测。`
       : '阅读时收藏的词会在这里变成快速自测。';
   }
+  if(startArticle){
+    startArticle.textContent = hasText ? '继续文章理解' : '先去阅读';
+    startArticle.className = hasText ? 'btn-primary' : 'btn-ghost';
+  }
+  if(startVocab){
+    startVocab.textContent = vocabCount ? '继续练生词' : '先收藏生词';
+    startVocab.className = vocabCount ? 'btn-primary' : 'btn-ghost';
+  }
+}
+
+function focusPracticeModule(type){
+  if(type === 'article' && !CURRENT_ARTICLE_TEXT.trim()){
+    switchWorkspace('reading');
+    return;
+  }
+  if(type === 'vocab' && !getAllVocab().length){
+    switchWorkspace('reading');
+    return;
+  }
+  switchWorkspace('retell');
+  const target = type === 'article'
+    ? document.getElementById('articlePracticeModule')
+    : type === 'vocab'
+      ? document.getElementById('vocabPracticeModule')
+      : document.getElementById('typingPracticeModule');
+  target?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function setArticlePracticeMode(mode){
+  articlePracticeMode = mode === 'retell' ? 'retell' : 'cloze';
+  document.querySelectorAll('.practice-mode-tab').forEach(button=>{
+    button.classList.toggle('active', button.id === `${articlePracticeMode}ModeTab`);
+  });
+  document.querySelectorAll('.article-practice-panel').forEach(panel=>{
+    panel.classList.toggle('active', panel.dataset.articlePractice === articlePracticeMode);
+  });
 }
 
 function getVocabPracticeItems(){
@@ -2253,6 +2292,8 @@ function renderVocabPractice(){
     empty.style.display = 'block';
     body.style.display = 'none';
     card.innerHTML = '';
+    const result = document.getElementById('vocabPracticeResult');
+    if(result) result.textContent = '';
     return;
   }
   empty.style.display = 'none';
@@ -2292,21 +2333,36 @@ function toggleVocabPracticeAnswer(){
   renderVocabPractice();
 }
 
-function markVocabPracticeKnown(){
+function rateVocabPractice(rating){
   const items = getVocabPracticeItems();
   const item = items[currentVocabPracticeIndex];
   if(!item) return;
   const vocabItem = vocabData.find(v => v.word === item.word);
   if(vocabItem){
-    vocabItem.repetition = Math.min((vocabItem.repetition || 0) + 1, SRS_STEPS_MIN.length - 1);
+    if(rating === 'again'){
+      vocabItem.repetition = 0;
+    } else if(rating === 'hard'){
+      vocabItem.repetition = Math.max(1, vocabItem.repetition || 0);
+    } else {
+      vocabItem.repetition = Math.min((vocabItem.repetition || 0) + 1, SRS_STEPS_MIN.length - 1);
+    }
     const mins = SRS_STEPS_MIN[vocabItem.repetition];
     vocabItem.interval = mins;
     vocabItem.dueAt = Date.now() + mins * 60000;
     saveVocab();
     renderVocab();
   }
+  const result = document.getElementById('vocabPracticeResult');
+  if(result){
+    const label = rating === 'again' ? '不认识' : rating === 'hard' ? '模糊' : '认识';
+    result.textContent = `已记录：${label}。`;
+  }
   vocabPracticeAnswerVisible = false;
-  renderVocabPractice();
+  nextVocabPractice();
+}
+
+function markVocabPracticeKnown(){
+  rateVocabPractice('easy');
 }
 
 function generateCloze(){

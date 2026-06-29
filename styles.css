@@ -1745,6 +1745,15 @@ body.has-reading .article-practice-body {
   max-width: 360px;
 }
 
+.practice-start-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 0 18px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--line);
+}
+
 .unlock-pill,
 .module-lock {
   display: inline-flex;
@@ -1801,9 +1810,46 @@ body.has-reading .article-practice-body {
 
 .practice-subgrid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.82fr);
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 12px;
   margin-top: 16px;
+}
+
+.practice-mode-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin-top: 16px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f7f7f5;
+}
+
+.practice-mode-tab {
+  min-width: 88px;
+  min-height: 34px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.practice-mode-tab.active {
+  background: #fff;
+  color: var(--sumi);
+  box-shadow: 0 1px 6px rgba(44, 52, 64, 0.08);
+}
+
+.article-practice-panel {
+  display: none;
+}
+
+.article-practice-panel.active {
+  display: block;
 }
 
 .practice-subpanel {

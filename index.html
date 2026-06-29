@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260628-19">
+<link rel="stylesheet" href="styles.css?v=20260628-20">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -260,8 +260,13 @@
             <span class="unlock-pill unlocked">基础句型：可练习</span>
           </div>
         </div>
+        <div class="practice-start-row">
+          <button class="btn-primary" id="startArticlePracticeBtn" onclick="focusPracticeModule('article')">开始文章理解</button>
+          <button class="btn-ghost" id="startVocabPracticeBtn" onclick="focusPracticeModule('vocab')">练生词</button>
+          <button class="btn-ghost" onclick="focusPracticeModule('typing')">练基础句型</button>
+        </div>
 
-        <div class="practice-module article-module">
+        <div class="practice-module article-module" id="articlePracticeModule">
           <div class="practice-module-head">
             <div>
               <span class="module-kicker">文章理解</span>
@@ -276,8 +281,12 @@
             <button class="btn-primary" onclick="switchWorkspace('reading')">去阅读页导入文章</button>
           </div>
           <div class="article-practice-body">
+            <div class="practice-mode-tabs" aria-label="文章理解练习类型">
+              <button class="practice-mode-tab active" id="clozeModeTab" onclick="setArticlePracticeMode('cloze')" type="button">挖空</button>
+              <button class="practice-mode-tab" id="retellModeTab" onclick="setArticlePracticeMode('retell')" type="button">复述</button>
+            </div>
             <div class="practice-subgrid">
-              <section class="practice-subpanel">
+              <section class="practice-subpanel article-practice-panel active" data-article-practice="cloze">
                 <div class="section-header"><span class="section-title">挖空自测</span></div>
                 <div class="btnrow">
                   <button class="btn-primary" onclick="generateCloze()">生成挖空测试</button>
@@ -289,7 +298,7 @@
                 </div>
                 <div class="typing-score" id="clozeScore"></div>
               </section>
-              <section class="practice-subpanel">
+              <section class="practice-subpanel article-practice-panel" data-article-practice="retell">
                 <div class="section-header"><span class="section-title">复述</span></div>
                 <div class="btnrow">
                   <button class="btn-ghost" onclick="speakOriginalForRetell()">朗读原文</button>
@@ -301,7 +310,7 @@
           </div>
         </div>
 
-        <div class="practice-module vocab-practice-module">
+        <div class="practice-module vocab-practice-module" id="vocabPracticeModule">
           <div class="practice-module-head">
             <div>
               <span class="module-kicker">生词练习</span>
@@ -319,13 +328,16 @@
             <div class="btnrow">
               <button class="btn-ghost" onclick="prevVocabPractice()">上一词</button>
               <button class="btn-primary" onclick="toggleVocabPracticeAnswer()">显示释义</button>
-              <button class="btn-ghost" onclick="markVocabPracticeKnown()">记住了</button>
+              <button class="btn-ghost" onclick="rateVocabPractice('again')">不认识</button>
+              <button class="btn-ghost" onclick="rateVocabPractice('hard')">模糊</button>
+              <button class="btn-ghost" onclick="rateVocabPractice('easy')">认识</button>
               <button class="btn-ghost" onclick="nextVocabPractice()">下一词</button>
             </div>
+            <div class="typing-score" id="vocabPracticeResult"></div>
           </div>
         </div>
 
-        <div class="practice-module">
+        <div class="practice-module" id="typingPracticeModule">
           <div class="practice-module-head">
             <div>
               <span class="module-kicker">基础句型</span>
@@ -556,6 +568,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260628-19"></script>
+<script src="app.js?v=20260628-20"></script>
 </body>
 </html>
