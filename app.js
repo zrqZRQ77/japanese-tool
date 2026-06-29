@@ -157,18 +157,42 @@ function syncVocabPanelData() {
     const el = document.getElementById(id);
     if(el) el.textContent = dueCount;
   });
+  const primaryAction = document.getElementById('vocabPrimaryAction');
+  if(primaryAction){
+    primaryAction.textContent = !vocab.length
+      ? '去阅读并收藏'
+      : dueCount
+        ? `复习 ${dueCount} 个到期词`
+        : '搜索生词';
+  }
   refreshPracticeStatus();
   renderVocabPractice();
   renderDailyPlan();
 }
 
+function runVocabPrimaryAction(){
+  const vocab = getAllVocab();
+  if(!vocab.length){
+    switchWorkspace('reading');
+    document.getElementById('inputText')?.focus();
+    return;
+  }
+  if(vocab.some(item => isDue(item))){
+    startReview();
+    return;
+  }
+  document.getElementById('vocabSearchInput')?.focus();
+}
+
 // ===== 菜单面板逻辑 =====
 function openMenu() {
   document.getElementById('menuPanel').classList.add('active');
+  document.body.classList.add('menu-open');
 }
 
 function closeMenu() {
   document.getElementById('menuPanel').classList.remove('active');
+  document.body.classList.remove('menu-open');
 }
 
 // ===== 检测首次访问 =====
@@ -755,18 +779,29 @@ function renderLearningPath(){
   const list = document.getElementById('learningPathSteps');
   const action = document.getElementById('learningPathAction');
   const progress = document.getElementById('dailyPlanProgress');
+  const title = document.getElementById('dailyPlanTitle');
+  const readingNextAction = document.getElementById('readingNextAction');
   if(!list || !action) return;
   const steps = guidedPathSteps();
-  const next = steps.find(step => !step.done) || steps[0];
+  const next = steps.find(step => !step.done);
   const completed = steps.filter(step => step.done).length;
-  action.textContent = next.action;
-  action.dataset.step = next.type;
+  if(next){
+    if(title) title.textContent = `下一步：${next.title}`;
+    action.textContent = next.action;
+    action.dataset.step = next.type;
+    if(readingNextAction) readingNextAction.textContent = next.action;
+  }else{
+    if(title) title.textContent = '今天的学习已完成';
+    action.textContent = '找下一篇';
+    action.dataset.step = 'discover';
+    if(readingNextAction) readingNextAction.textContent = '找下一篇';
+  }
   if(progress){
     progress.textContent = `${completed} / ${steps.length}`;
     progress.classList.toggle('is-complete', completed === steps.length);
   }
   list.innerHTML = steps.map((step, index) => `
-    <button class="learning-path-step${step.done ? ' is-done' : ''}${step.type === next.type ? ' is-current' : ''}" type="button" onclick="openGuidedStep('${step.type}')">
+    <button class="learning-path-step${step.done ? ' is-done' : ''}${step.type === next?.type ? ' is-current' : ''}" type="button" onclick="openGuidedStep('${step.type}')">
       <span>${step.done ? '✓' : index + 1}</span>
       <b>${step.title}</b>
       <small>${step.detail}</small>
@@ -1157,6 +1192,7 @@ function setPostAnalysisActionsVisible(visible){
 
 function setReadingReady(ready){
   document.body.classList.toggle('has-reading', !!ready);
+  document.body.classList.remove('is-editing-source');
   const composer = document.getElementById('sourceComposer');
   if(composer && ready) composer.classList.remove('is-open');
   renderLearningPath();
@@ -1165,6 +1201,7 @@ function setReadingReady(ready){
 function editSourceText(){
   const composer = document.getElementById('sourceComposer');
   if(!composer) return;
+  document.body.classList.add('is-editing-source');
   composer.classList.add('is-open');
   document.getElementById('inputText')?.focus();
 }
@@ -1193,7 +1230,8 @@ function switchWorkspace(view){
   document.querySelectorAll('.app-sidebar .nav-item').forEach(button=>{
     const navView = button.dataset.view;
     const isPractice = (view === 'typing' || view === 'retell') && navView === 'retell';
-    button.classList.toggle('active', navView === view || isPractice);
+    const isMore = button.classList.contains('nav-more') && ['discover','test','history','grammar'].includes(view);
+    button.classList.toggle('active', navView === view || isPractice || isMore);
   });
   document.querySelectorAll('.workspace-tab').forEach(button=>{
     button.classList.toggle('active', button.dataset.view === view);
@@ -1908,11 +1946,6 @@ function renderReadingAnalysis(summary){
       <div><b>${Number(summary.coverage || 0)}%</b><span>${sourceLabel}</span></div>
     </div>
     <p>${escapeHtml(readingActionAdvice(summary, level))}</p>
-    <div class="reading-analysis-actions">
-      <button class="btn-ghost" type="button" onclick="switchWorkspace('vocab')">整理生词</button>
-      <button class="btn-ghost" type="button" onclick="focusPracticeModule('article')">生成练习</button>
-      <button class="btn-ghost" type="button" onclick="switchWorkspace('discover')">找下一篇</button>
-    </div>
   `;
 }
 
@@ -4282,7 +4315,7 @@ async function initializeApp(){
     if(panel) panel.classList.remove('active');
   });
   document.addEventListener('keydown', event=>{
-    if(event.key === 'Escape'){ closeExportModal(); closeImportPreview(); }
+    if(event.key === 'Escape'){ closeExportModal(); closeImportPreview(); closeMenu(); }
   });
   switchWorkspace(safeStorage.getItem('reading_workspace') || 'reading');
   renderTypingPractice();
