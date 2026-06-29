@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260629-32">
+<link rel="stylesheet" href="styles.css?v=20260629-33">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -108,6 +108,16 @@
           </label>
           <button class="btn-primary" type="submit">保存目标</button>
         </form>
+        <section class="learning-path-guide" aria-labelledby="learningPathTitle">
+          <div class="learning-path-head">
+            <div>
+              <span class="module-kicker">学习路径</span>
+              <h3 id="learningPathTitle">跟着这 4 步走就可以</h3>
+            </div>
+            <button class="btn-primary" type="button" id="learningPathAction" onclick="openGuidedStep()">继续下一步</button>
+          </div>
+          <div class="learning-path-steps" id="learningPathSteps"></div>
+        </section>
         <div class="daily-task-list" id="dailyTaskList"></div>
       </section>
       <!-- 阅读主界面 -->
@@ -191,9 +201,9 @@
           <div class="reading-hint" id="readingHint" style="display:none;">点击带颜色的词语，查看读音和释义。</div>
           <div class="next-step-bar" id="nextStepBar" style="display:none;">
             <span>下一步</span>
-            <button class="btn-ghost" onclick="switchWorkspace('vocab')">整理生词</button>
-            <button class="btn-primary" onclick="switchWorkspace('retell')">生成练习</button>
-            <button class="btn-ghost" onclick="switchWorkspace('discover')">找下一篇</button>
+            <button class="btn-ghost" onclick="openGuidedStep('vocab')">整理生词</button>
+            <button class="btn-primary" onclick="openGuidedStep('practice')">生成练习</button>
+            <button class="btn-ghost" onclick="openGuidedStep('discover')">找下一篇</button>
           </div>
 
           <div class="reading-output" id="output">
@@ -704,6 +714,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260629-32"></script>
+<script src="app.js?v=20260629-33"></script>
 </body>
 </html>

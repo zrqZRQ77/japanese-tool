@@ -706,6 +706,7 @@ function renderDailyPlan(){
   const progress = document.getElementById('dailyPlanProgress');
   if(!list || !progress) return;
   renderLearningGoals();
+  renderLearningPath();
   const tasks = dailyTaskState();
   const completed = tasks.filter(task => task.done).length;
   progress.textContent = `${completed} / ${tasks.length}`;
@@ -717,6 +718,79 @@ function renderDailyPlan(){
       <span class="daily-task-action">${task.done ? '已完成' : task.action}</span>
     </button>
   `).join('');
+}
+
+function guidedPathSteps(){
+  const hasReading = !!CURRENT_ARTICLE_TEXT.trim() || READING_HISTORY.some(item => isDateToday(item.date));
+  const vocabCount = getAllVocab().length;
+  const vocabPracticeCount = Object.values(PRACTICE_STATS.vocab).reduce((sum, count) => sum + Number(count || 0), 0);
+  const exerciseCount = Number(PRACTICE_STATS.typing.count || 0) + Number(PRACTICE_STATS.cloze.count || 0);
+  const hasQueuedReading = READING_QUEUE.some(item => item.status !== 'read');
+  return [
+    {
+      type:'reading',
+      title:'放入一篇文章',
+      detail:hasReading ? '已经有可学习的文章' : '先粘贴文本、链接或上传 TXT',
+      done:hasReading,
+      action:hasQueuedReading ? '读清单文章' : '开始阅读'
+    },
+    {
+      type:'vocab',
+      title:'点词并收藏生词',
+      detail:vocabCount ? `生词本已有 ${vocabCount} 个词` : '阅读时点击词语，先收藏几个',
+      done:vocabCount > 0,
+      action:vocabCount ? '复习生词' : '去收藏'
+    },
+    {
+      type:'practice',
+      title:'做一次练习',
+      detail:(vocabPracticeCount + exerciseCount) ? '今天已经开始练习' : '文章理解、生词或基础句型任选一种',
+      done:(vocabPracticeCount + exerciseCount) > 0,
+      action:'去练习'
+    },
+    {
+      type:'discover',
+      title:'找下一篇材料',
+      detail:hasQueuedReading ? '阅读清单已有待读文章' : '把下一篇文章加入清单',
+      done:hasQueuedReading,
+      action:hasQueuedReading ? '读下一篇' : '找材料'
+    }
+  ];
+}
+
+function nextGuidedStep(){
+  const steps = guidedPathSteps();
+  return steps.find(step => !step.done) || steps[0];
+}
+
+function renderLearningPath(){
+  const list = document.getElementById('learningPathSteps');
+  const action = document.getElementById('learningPathAction');
+  if(!list || !action) return;
+  const steps = guidedPathSteps();
+  const next = steps.find(step => !step.done) || steps[0];
+  action.textContent = next.action;
+  action.dataset.step = next.type;
+  list.innerHTML = steps.map((step, index) => `
+    <button class="learning-path-step${step.done ? ' is-done' : ''}${step.type === next.type ? ' is-current' : ''}" type="button" onclick="openGuidedStep('${step.type}')">
+      <span>${step.done ? '✓' : index + 1}</span>
+      <b>${step.title}</b>
+      <small>${step.detail}</small>
+    </button>
+  `).join('');
+}
+
+function openGuidedStep(type = ''){
+  const target = type || document.getElementById('learningPathAction')?.dataset.step || nextGuidedStep().type;
+  if(target === 'reading') return openDailyTask('reading');
+  if(target === 'vocab') return openDailyTask('vocab');
+  if(target === 'practice') return openDailyTask('practice');
+  if(target === 'discover'){
+    const nextUnread = READING_QUEUE.find(item => item.status !== 'read');
+    if(nextUnread) return openReadingQueueItem(nextUnread.id);
+    switchWorkspace('discover');
+    document.getElementById('readingQueueUrlInput')?.focus();
+  }
 }
 
 function openDailyTask(type){
@@ -1022,6 +1096,7 @@ function setReadingReady(ready){
   document.body.classList.toggle('has-reading', !!ready);
   const composer = document.getElementById('sourceComposer');
   if(composer && ready) composer.classList.remove('is-open');
+  renderLearningPath();
 }
 
 function editSourceText(){
@@ -1073,6 +1148,7 @@ function switchWorkspace(view){
   if(view === 'history') renderReadingHistory();
   if(view === 'vocab') syncVocabPanelData();
   if(view === 'reading') renderDailyPlan();
+  renderLearningPath();
 }
 
 function openImportPreview(text, meta = {}){
