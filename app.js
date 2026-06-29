@@ -114,6 +114,10 @@ function isDue(vocabItem) {
   return Number(vocabItem?.dueAt || 0) <= Date.now();
 }
 
+function removeVocabIcon(){
+  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 7v8h2v-8h-2Zm4 0v8h2v-8h-2ZM7 8h10l-.7 12H7.7L7 8Z"></path></svg>';
+}
+
 function syncVocabPanelData() {
   const vocab = getAllVocab();
   ['vocabCountPanel', 'vocabCountPage'].forEach(id=>{
@@ -133,7 +137,7 @@ function syncVocabPanelData() {
           <div class="vocab-word">${escapeHtml(v.word)}${vocabPracticeTag(v)}</div>
           <div class="vocab-meta">${escapeHtml(v.reading || '')}${v.reading && v.meaning ? ' · ' : ''}${escapeHtml(v.meaning || '')}</div>
         </div>
-        <button class="vocab-remove" onclick="removeFromVocab('${encodeURIComponent(v.word)}')" aria-label="移除 ${escapeHtml(v.word)}">×</button>
+        <button class="vocab-remove" onclick="removeFromVocab('${encodeURIComponent(v.word)}')" title="移除" aria-label="移除 ${escapeHtml(v.word)}">${removeVocabIcon()}</button>
       </li>
     `).join('');
 
@@ -232,6 +236,7 @@ let currentTypingIndex = 0;
 let currentVocabPracticeIndex = 0;
 let vocabPracticeAnswerVisible = false;
 let articlePracticeMode = 'cloze';
+let ACTIVE_PRACTICE_MODULE = 'article';
 let PRACTICE_STATS = loadPracticeStats();
 let PRACTICE_HISTORY = loadPracticeHistory();
 syncPracticeHistory();
@@ -1062,6 +1067,7 @@ function switchWorkspace(view){
     renderVocabPractice();
     renderPracticeSummary();
     renderPracticeReview();
+    renderPracticeModuleVisibility();
   }
   if(view === 'discover') renderSourceDirectory();
   if(view === 'history') renderReadingHistory();
@@ -1270,6 +1276,9 @@ async function readJsonResponse(response){
   try{
     return await response.json();
   }catch{
+    if(response.status === 404){
+      return { ok:false, message:'当前部署没有找到文件解析接口。PDF / Word 解析需要连接后端服务。' };
+    }
     return { ok:false, message:`服务返回了无法识别的内容（HTTP ${response.status}）。` };
   }
 }
@@ -1378,6 +1387,14 @@ async function extractUploadedFile(file){
     }finally{
       if(input) input.value = '';
     }
+    return;
+  }
+
+  if(!hasConfiguredBackend()){
+    const message = `${extension.slice(1).toUpperCase()} 解析需要后端服务。当前 Vercel 前端还没有配置后端 API 地址，请先部署后端，并在 config.js 里填写 apiBaseUrl。临时方案：复制正文到输入框，或上传 TXT。`;
+    setImportStatus(message, 'error');
+    showToast('文件解析服务未配置', 'error');
+    if(input) input.value = '';
     return;
   }
 
@@ -3003,6 +3020,7 @@ function refreshPracticeStatus(){
     startVocab.textContent = vocabCount ? '继续练生词' : '先收藏生词';
     startVocab.className = vocabCount ? 'btn-primary' : 'btn-ghost';
   }
+  renderPracticeModuleVisibility();
 }
 
 function focusPracticeModule(type){
@@ -3014,13 +3032,30 @@ function focusPracticeModule(type){
     switchWorkspace('reading');
     return;
   }
+  ACTIVE_PRACTICE_MODULE = ['article', 'vocab', 'typing'].includes(type) ? type : 'article';
   switchWorkspace('retell');
+  renderPracticeModuleVisibility();
   const target = type === 'article'
     ? document.getElementById('articlePracticeModule')
     : type === 'vocab'
       ? document.getElementById('vocabPracticeModule')
       : document.getElementById('typingPracticeModule');
   target?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function renderPracticeModuleVisibility(){
+  [
+    ['article', 'articlePracticeModule', 'startArticlePracticeBtn'],
+    ['vocab', 'vocabPracticeModule', 'startVocabPracticeBtn'],
+    ['typing', 'typingPracticeModule', 'startTypingPracticeBtn']
+  ].forEach(([type, moduleId, buttonId])=>{
+    const module = document.getElementById(moduleId);
+    if(module) module.classList.toggle('is-active', type === ACTIVE_PRACTICE_MODULE);
+    if(buttonId){
+      const button = document.getElementById(buttonId);
+      if(button) button.classList.toggle('is-selected', type === ACTIVE_PRACTICE_MODULE);
+    }
+  });
 }
 
 function setArticlePracticeMode(mode){
@@ -3461,7 +3496,7 @@ function vocabListMarkup(items){
         <span class="vocab-word">${escapeHtml(v.word)}<span style="font-size:11px;color:var(--ink-soft);font-weight:400;margin-left:6px;">${escapeHtml(v.reading || '')}</span>${tag}${practiceTag}</span>
         <span class="vocab-meaning">${escapeHtml(v.meaning || '')}</span>
       </div>
-      <button class="vocab-remove" onclick="removeFromVocab('${encodeURIComponent(v.word)}')" aria-label="移除 ${escapeHtml(v.word)}">×</button>
+      <button class="vocab-remove" onclick="removeFromVocab('${encodeURIComponent(v.word)}')" title="移除" aria-label="移除 ${escapeHtml(v.word)}">${removeVocabIcon()}</button>
     </li>
   `;}).join('');
 }
@@ -3711,8 +3746,14 @@ function setFlashArea(message){
   if(area) area.innerHTML = `<div class="flash-empty">${message}</div>`;
 }
 
+function openVocabReviewPanel(){
+  const panel = document.getElementById('vocabReviewDisclosure');
+  if(panel) panel.open = true;
+}
+
 function startReview(){
   switchWorkspace('vocab');
+  openVocabReviewPanel();
   const now = Date.now();
   reviewQueue = vocabData.filter(v=>v.dueAt<=now).map(v=>v.word);
   if(reviewQueue.length===0){
@@ -3724,6 +3765,7 @@ function startReview(){
 
 function reviewAllVocab(){
   switchWorkspace('vocab');
+  openVocabReviewPanel();
   if(!vocabData.length){
     setFlashArea('生词本是空的。先去阅读页分析一篇文章，再收藏几个词。');
     return;

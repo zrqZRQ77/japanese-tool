@@ -980,6 +980,45 @@ button:disabled {
   margin: 0;
 }
 
+.vocab-list li,
+.vocab-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.vocab-remove {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0.72;
+  transition: background .16s ease, border-color .16s ease, color .16s ease, opacity .16s ease;
+}
+
+.vocab-remove svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+.vocab-remove:hover,
+.vocab-remove:focus-visible {
+  border-color: rgba(200, 72, 67, 0.18);
+  background: rgba(200, 72, 67, 0.08);
+  color: var(--trap);
+  opacity: 1;
+  outline: none;
+}
+
 /* ===== 语法词典样式 ===== */
 .grammar-search {
   width: 100%;
@@ -1865,6 +1904,12 @@ body.has-reading .article-practice-body {
   border-bottom: 1px solid var(--line);
 }
 
+.practice-start-row button.is-selected {
+  border-color: rgba(47, 111, 98, 0.22);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 .practice-summary-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -2013,6 +2058,10 @@ body.has-reading .article-practice-body {
 .practice-module {
   padding: 20px 0;
   border-bottom: 1px solid var(--line);
+}
+
+.practice-module:not(.is-active) {
+  display: none;
 }
 
 .practice-module:last-child {
@@ -2838,6 +2887,50 @@ body[data-view="discover"] .discover-section {
   color: var(--trap);
 }
 
+.progressive-panel,
+.vocab-review-disclosure {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fcfcfb;
+}
+
+.progressive-panel {
+  margin: -6px 0 16px;
+}
+
+.progressive-panel summary,
+.vocab-review-disclosure summary {
+  min-height: 44px;
+  padding: 12px 14px;
+  color: var(--sumi);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+  list-style: none;
+}
+
+.progressive-panel summary::-webkit-details-marker,
+.vocab-review-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.progressive-panel summary::after,
+.vocab-review-disclosure summary::after {
+  content: '+';
+  float: right;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.progressive-panel[open] summary::after,
+.vocab-review-disclosure[open] summary::after {
+  content: '-';
+}
+
+.progressive-panel .vocab-page-actions {
+  padding: 0 14px 14px;
+}
+
 .vocab-filter-bar {
   display: grid;
   gap: 10px;
@@ -2916,12 +3009,22 @@ body[data-view="discover"] .discover-section {
   gap: 18px;
 }
 
+.vocab-review-disclosure {
+  align-self: start;
+}
+
 .vocab-page-list,
 .vocab-page-review {
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: #fff;
+}
+
+.vocab-review-disclosure .vocab-page-review {
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 12px 12px;
 }
 
 .flash-page-placeholder {
