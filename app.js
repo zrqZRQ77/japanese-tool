@@ -1518,6 +1518,7 @@ async function renderText(){
   if(!raw){
     out.innerHTML = '<span style="color:var(--ink-soft);font-size:14.5px;">请先粘贴文本，或点击「用示例开始」。</span>';
     statsBar.innerHTML = '';
+    renderReadingAnalysis(null);
     CURRENT_ARTICLE_TEXT = '';
     refreshRetellAdvice();
     setPostAnalysisActionsVisible(false);
@@ -1614,6 +1615,14 @@ function renderWithDictionary(raw, out, statsBar){
     <span class="stat-chip chip-particle">助词 <span class="n">${counts.particle}</span></span>
     <span class="stat-chip chip-trap">易误解词 <span class="n">${counts.trap}</span></span>
   `;
+  renderReadingAnalysis({
+    mode:'dictionary',
+    chars:totalChars,
+    coverage,
+    counts,
+    recognized:counts.N5 + counts.N4 + counts.N3 + counts.trap,
+    totalTerms:counts.N5 + counts.N4 + counts.N3 + counts.trap + counts.particle
+  });
 }
 
 function katakanaToHiragana(str){
@@ -1681,6 +1690,82 @@ function renderWithKuromoji(raw, tokenizer, out, statsBar){
     <span class="stat-chip chip-n3">N3 <span class="n">${counts.N3}</span></span>
     <span class="stat-chip chip-particle">助词 <span class="n">${counts.particle}</span></span>
     <span class="stat-chip chip-trap">易误解词 <span class="n">${counts.trap}</span></span>
+  `;
+  renderReadingAnalysis({
+    mode:'kuromoji',
+    chars:tokenChars,
+    coverage,
+    counts,
+    recognized:counts.N5 + counts.N4 + counts.N3 + counts.trap + counts.kuromoji,
+    totalTerms:tokens.length
+  });
+}
+
+function estimateReadingLevel(summary){
+  const counts = summary?.counts || {};
+  const chars = Number(summary?.chars || 0);
+  const hardTerms = Number(counts.N3 || 0) + Number(counts.trap || 0) + Math.round(Number(counts.kuromoji || 0) * 0.35);
+  const studyTerms = Number(summary?.recognized || 0);
+  const density = chars ? Math.round((studyTerms / chars) * 100) : 0;
+  const hardRatio = studyTerms ? hardTerms / studyTerms : 0;
+  let score = 0;
+  if(chars > 700) score += 1;
+  if(chars > 1400) score += 1;
+  if(density > 8) score += 1;
+  if(density > 14) score += 1;
+  if(hardRatio > 0.24) score += 1;
+  if(hardRatio > 0.42) score += 1;
+  if(Number(counts.trap || 0) >= 3) score += 1;
+  if(Number(counts.kuromoji || 0) >= 18) score += 1;
+  if(score <= 1) return {level:'轻松', tone:'easy', label:'适合快速阅读'};
+  if(score <= 3) return {level:'适中', tone:'fit', label:'适合精读'};
+  if(score <= 5) return {level:'偏难', tone:'hard', label:'建议分段精读'};
+  return {level:'较难', tone:'hard', label:'建议换更短材料'};
+}
+
+function readingActionAdvice(summary, level){
+  const counts = summary?.counts || {};
+  const hardTerms = Number(counts.N3 || 0) + Number(counts.trap || 0);
+  if(level.level === '较难') return '先读前半段，收藏 5 个最影响理解的词，再去做生词练习。';
+  if(level.level === '偏难') return '适合慢读：先点开难词，再用这篇文章生成挖空练习。';
+  if(hardTerms >= 3) return '这篇有几个容易误解的词，读完后建议整理生词。';
+  return '难度比较顺，适合读完后直接做一次复述或基础句型练习。';
+}
+
+function renderReadingAnalysis(summary){
+  const card = document.getElementById('readingAnalysisCard');
+  if(!card) return;
+  if(!summary){
+    card.style.display = 'none';
+    card.innerHTML = '';
+    return;
+  }
+  const level = estimateReadingLevel(summary);
+  const counts = summary.counts || {};
+  const vocabDensity = summary.chars ? Math.round((Number(summary.recognized || 0) / summary.chars) * 100) : 0;
+  const hardTerms = Number(counts.N3 || 0) + Number(counts.trap || 0);
+  const sourceLabel = summary.mode === 'kuromoji' ? '智能分词' : '轻量词库';
+  card.style.display = 'block';
+  card.innerHTML = `
+    <div class="reading-analysis-head">
+      <div>
+        <span class="module-kicker">阅读分析</span>
+        <h3 id="readingAnalysisTitle">这篇文章：${level.label}</h3>
+      </div>
+      <span class="reading-analysis-level ${level.tone}">${level.level}</span>
+    </div>
+    <div class="reading-analysis-grid">
+      <div><b>${Number(summary.chars || 0).toLocaleString()}</b><span>有效字数</span></div>
+      <div><b>${vocabDensity}%</b><span>词汇密度</span></div>
+      <div><b>${hardTerms}</b><span>难点词</span></div>
+      <div><b>${Number(summary.coverage || 0)}%</b><span>${sourceLabel}</span></div>
+    </div>
+    <p>${escapeHtml(readingActionAdvice(summary, level))}</p>
+    <div class="reading-analysis-actions">
+      <button class="btn-ghost" type="button" onclick="switchWorkspace('vocab')">整理生词</button>
+      <button class="btn-ghost" type="button" onclick="focusPracticeModule('article')">生成练习</button>
+      <button class="btn-ghost" type="button" onclick="switchWorkspace('discover')">找下一篇</button>
+    </div>
   `;
 }
 

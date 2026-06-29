@@ -2669,10 +2669,103 @@ button,
 .legend-inline,
 .import-disclosure,
 .stats,
+.reading-analysis-card,
 .reading-hint {
   border-color: var(--line);
   border-radius: 12px;
   background: #fcfcfb;
+}
+
+.reading-analysis-card {
+  margin: 12px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+}
+
+.reading-analysis-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.reading-analysis-head h3 {
+  margin: 2px 0 0;
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.reading-analysis-level {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.reading-analysis-level.easy {
+  background: var(--n5-bg);
+  color: var(--n5);
+}
+
+.reading-analysis-level.fit {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.reading-analysis-level.hard {
+  background: var(--trap-bg);
+  color: var(--trap);
+}
+
+.reading-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reading-analysis-grid div {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.reading-analysis-grid b,
+.reading-analysis-grid span {
+  display: block;
+}
+
+.reading-analysis-grid b {
+  color: var(--sumi);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.reading-analysis-grid span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reading-analysis-card p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.reading-analysis-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .import-disclosure {
@@ -3074,8 +3167,14 @@ body[data-view="discover"] .discover-section {
   }
 
   .vocab-page-summary,
-  .practice-summary-grid {
+  .practice-summary-grid,
+  .reading-analysis-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .reading-analysis-head {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .practice-review-head,
@@ -3299,6 +3398,7 @@ body[data-view="discover"] .discover-section {
   .practice-start-row button,
   .btnrow button,
   .review-actions button,
+  .reading-analysis-actions button,
   .vocab-page-actions button,
   .test-actions button {
     width: 100%;
@@ -3436,7 +3536,8 @@ body[data-view="discover"] .discover-section {
 
 @media (max-width: 420px) {
   .vocab-page-summary,
-  .practice-summary-grid {
+  .practice-summary-grid,
+  .reading-analysis-grid {
     grid-template-columns: 1fr;
   }
 
