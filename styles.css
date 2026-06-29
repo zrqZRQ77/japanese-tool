@@ -2837,6 +2837,52 @@ body[data-view="discover"] .discover-section {
   color: var(--trap);
 }
 
+.vocab-filter-bar {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.vocab-search-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--sumi);
+  font: inherit;
+  font-size: 13px;
+}
+
+.vocab-search-input:focus {
+  outline: none;
+  border-color: var(--sumi);
+}
+
+.vocab-filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vocab-filter-tab {
+  min-height: 32px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.vocab-filter-tab.active {
+  border-color: rgba(47, 111, 98, 0.22);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 .vocab-page-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 180px));
@@ -3403,6 +3449,15 @@ body[data-view="discover"] .discover-section {
   .test-actions button {
     width: 100%;
     min-height: 40px;
+  }
+
+  .vocab-filter-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .vocab-filter-tab {
+    width: 100%;
   }
 
   .practice-summary-grid {

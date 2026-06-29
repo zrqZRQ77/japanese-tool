@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260629-28">
+<link rel="stylesheet" href="styles.css?v=20260629-29">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -253,6 +253,15 @@
           <section class="vocab-page-list">
             <div class="section-header">
               <span class="section-title">词汇列表</span>
+            </div>
+            <div class="vocab-filter-bar">
+              <input id="vocabSearchInput" class="vocab-search-input" type="search" placeholder="搜索单词、读音、释义" oninput="renderVocab()">
+              <div class="vocab-filter-tabs" aria-label="生词筛选">
+                <button type="button" class="vocab-filter-tab active" data-filter="all" onclick="setVocabFilter('all')">全部</button>
+                <button type="button" class="vocab-filter-tab" data-filter="due" onclick="setVocabFilter('due')">到期</button>
+                <button type="button" class="vocab-filter-tab" data-filter="weak" onclick="setVocabFilter('weak')">需加强</button>
+                <button type="button" class="vocab-filter-tab" data-filter="practiced" onclick="setVocabFilter('practiced')">已练过</button>
+              </div>
             </div>
             <ul class="vocab-list" id="vocabListPage"></ul>
             <div class="vocab-empty" id="vocabEmptyPage">还没有收藏的词。先去阅读页分析一篇文章，再点击词语加入生词本。</div>
@@ -644,6 +653,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260629-28"></script>
+<script src="app.js?v=20260629-29"></script>
 </body>
 </html>

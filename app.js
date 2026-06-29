@@ -127,8 +127,6 @@ function syncVocabPanelData() {
 
   const vocabListPanel = document.getElementById('vocabListPanel');
   const vocabEmptyPanel = document.getElementById('vocabEmptyPanel');
-  const vocabListPage = document.getElementById('vocabListPage');
-  const vocabEmptyPage = document.getElementById('vocabEmptyPage');
   const listMarkup = vocab.map(v => `
       <li class="vocab-item">
         <div>
@@ -142,19 +140,12 @@ function syncVocabPanelData() {
   if(vocab.length === 0) {
     if(vocabListPanel) vocabListPanel.style.display = 'none';
     if(vocabEmptyPanel) vocabEmptyPanel.style.display = 'block';
-    if(vocabListPage) vocabListPage.style.display = 'none';
-    if(vocabEmptyPage) vocabEmptyPage.style.display = 'block';
   } else {
     if(vocabListPanel) {
       vocabListPanel.style.display = 'block';
       vocabListPanel.innerHTML = listMarkup;
     }
     if(vocabEmptyPanel) vocabEmptyPanel.style.display = 'none';
-    if(vocabListPage) {
-      vocabListPage.style.display = 'block';
-      vocabListPage.innerHTML = listMarkup;
-    }
-    if(vocabEmptyPage) vocabEmptyPage.style.display = 'none';
   }
 
   const dueCount = vocab.filter(v => isDue(v)).length;
@@ -3364,6 +3355,7 @@ function renderRetellAudioSlot(){
 }
 
 let vocabData = [];
+let VOCAB_FILTER = 'all';
 
 async function loadVocab(){
   try{
@@ -3429,20 +3421,37 @@ function removeFromVocab(word){
   renderVocab();
 }
 
-function renderVocab(){
-  const list = document.getElementById('vocabList');
-  const empty = document.getElementById('vocabEmptyMsg');
-  document.getElementById('vocabCount').textContent = vocabData.length;
-  const badge = document.getElementById('vocabBadgeCount');
-  if(badge) badge.textContent = vocabData.length;
-  const total = document.getElementById('totalVocabCount');
-  if(total) total.textContent = vocabData.length;
-  if(vocabData.length===0){ list.innerHTML=''; empty.style.display='block'; updateDueCount(); return; }
-  empty.style.display='none';
+function vocabMatchesFilter(vocabItem, filter, now = Date.now()){
+  if(filter === 'due') return Number(vocabItem?.dueAt || 0) <= now;
+  if(filter === 'weak') return ['again', 'hard'].includes(vocabItem?.lastPracticeRating || '');
+  if(filter === 'practiced') return !!vocabItem?.lastPracticeAt;
+  return true;
+}
+
+function filteredVocabForPage(){
+  const keyword = (document.getElementById('vocabSearchInput')?.value || '').trim().toLowerCase();
   const now = Date.now();
-  list.innerHTML = vocabData.map(v=>{
-    const isDue = v.dueAt <= now;
-    const tag = isDue
+  return vocabData.filter(v=>{
+    if(!vocabMatchesFilter(v, VOCAB_FILTER, now)) return false;
+    if(!keyword) return true;
+    const haystack = `${v.word || ''} ${v.reading || ''} ${v.meaning || ''} ${v.pos || ''} ${v.level || ''}`.toLowerCase();
+    return haystack.includes(keyword);
+  });
+}
+
+function setVocabFilter(filter){
+  VOCAB_FILTER = ['all', 'due', 'weak', 'practiced'].includes(filter) ? filter : 'all';
+  document.querySelectorAll('.vocab-filter-tab').forEach(button=>{
+    button.classList.toggle('active', button.dataset.filter === VOCAB_FILTER);
+  });
+  renderVocab();
+}
+
+function vocabListMarkup(items){
+  const now = Date.now();
+  return items.map(v=>{
+    const isDueNow = v.dueAt <= now;
+    const tag = isDueNow
       ? '<span class="vocab-due-tag due-now">待复习</span>'
       : `<span class="vocab-due-tag due-later">${formatDue(v.dueAt)}</span>`;
     const practiceTag = vocabPracticeTag(v);
@@ -3455,6 +3464,41 @@ function renderVocab(){
       <button class="vocab-remove" onclick="removeFromVocab('${encodeURIComponent(v.word)}')" aria-label="移除 ${escapeHtml(v.word)}">×</button>
     </li>
   `;}).join('');
+}
+
+function renderVocab(){
+  const list = document.getElementById('vocabList');
+  const empty = document.getElementById('vocabEmptyMsg');
+  document.getElementById('vocabCount').textContent = vocabData.length;
+  const badge = document.getElementById('vocabBadgeCount');
+  if(badge) badge.textContent = vocabData.length;
+  const total = document.getElementById('totalVocabCount');
+  if(total) total.textContent = vocabData.length;
+  const pageList = document.getElementById('vocabListPage');
+  const pageEmpty = document.getElementById('vocabEmptyPage');
+  const filteredPageVocab = filteredVocabForPage();
+  document.querySelectorAll('.vocab-filter-tab').forEach(button=>{
+    button.classList.toggle('active', button.dataset.filter === VOCAB_FILTER);
+  });
+  if(vocabData.length===0){
+    list.innerHTML='';
+    if(pageList) pageList.innerHTML = '';
+    empty.style.display='block';
+    if(pageEmpty) pageEmpty.textContent = '还没有收藏的词。先去阅读页分析一篇文章，再点击词语加入生词本。';
+    if(pageEmpty) pageEmpty.style.display = 'block';
+    updateDueCount();
+    return;
+  }
+  empty.style.display='none';
+  list.innerHTML = vocabListMarkup(vocabData);
+  if(pageList){
+    pageList.innerHTML = vocabListMarkup(filteredPageVocab);
+    pageList.style.display = filteredPageVocab.length ? 'block' : 'none';
+  }
+  if(pageEmpty){
+    pageEmpty.textContent = filteredPageVocab.length ? '' : '没有符合条件的生词。换个搜索词或筛选条件试试。';
+    pageEmpty.style.display = filteredPageVocab.length ? 'none' : 'block';
+  }
   updateDueCount();
   syncVocabPanelData();
 }
