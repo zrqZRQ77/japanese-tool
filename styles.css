@@ -2519,10 +2519,13 @@ body[data-view="discover"] .discover-section {
 }
 
 @media (max-width: 760px) {
-  .vocab-page-summary,
-  .vocab-page-layout,
-  .practice-summary-grid {
+  .vocab-page-layout {
     grid-template-columns: 1fr;
+  }
+
+  .vocab-page-summary,
+  .practice-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .source-directory-item {
@@ -2563,6 +2566,10 @@ body[data-view="discover"] .discover-section {
 }
 
 @media (max-width: 720px) {
+  body {
+    font-size: 14px;
+  }
+
   .hero-intro {
     padding: 14vh 16px 48px;
   }
@@ -2580,8 +2587,71 @@ body[data-view="discover"] .discover-section {
     justify-content: stretch;
   }
 
+  .hero-features {
+    display: grid;
+    gap: 8px;
+    text-align: left;
+  }
+
+  .app-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 120;
+    padding: 8px 10px 10px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(14px);
+  }
+
+  .sidebar-brand {
+    display: none;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 0 0 2px;
+    scrollbar-width: none;
+  }
+
+  .sidebar-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-item {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 8px 11px;
+    margin: 0;
+    border-radius: 999px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .nav-item[data-view="reading"]::after,
+  .nav-item[data-view="vocab"]::after,
+  .nav-item[data-view="retell"]::after {
+    display: none;
+  }
+
+  .nav-badge {
+    min-width: 18px;
+    padding: 1px 5px;
+    margin-left: 6px;
+  }
+
+  .app-content {
+    margin-left: 0;
+    padding: 14px 12px 40px;
+  }
+
   .reading-side {
     display: flex !important;
+  }
+
+  .reading-workbench {
+    max-width: none;
+    gap: 12px;
   }
 
   .reading-main .card-pad,
@@ -2593,5 +2663,133 @@ body[data-view="discover"] .discover-section {
     padding: 20px;
     font-size: 16px;
     min-height: 280px;
+  }
+
+  .reading-main.card,
+  .vocab-section-page,
+  .grammar-section,
+  .retell-section,
+  .discover-section,
+  .test-section,
+  .history-section {
+    border-radius: 12px;
+    margin: 0 auto;
+  }
+
+  .practice-hero {
+    padding-bottom: 16px;
+    margin-bottom: 14px;
+  }
+
+  .practice-hero h2 {
+    font-size: 21px;
+  }
+
+  .practice-start-row,
+  .btnrow,
+  .review-actions,
+  .vocab-page-actions,
+  .test-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .practice-start-row button,
+  .btnrow button,
+  .review-actions button,
+  .vocab-page-actions button,
+  .test-actions button {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .practice-summary-grid {
+    gap: 8px;
+  }
+
+  .practice-summary-grid div,
+  .vocab-page-summary > div {
+    padding: 11px;
+  }
+
+  .practice-summary-grid b {
+    font-size: 16px;
+  }
+
+  .practice-module {
+    padding: 18px 0;
+  }
+
+  .practice-subpanel,
+  .vocab-quiz-card,
+  .vocab-page-list,
+  .vocab-page-review,
+  .source-directory-item {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .practice-mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .practice-mode-tab {
+    min-width: 0;
+  }
+
+  .cloze-output {
+    max-height: 280px;
+    padding: 14px;
+    font-size: 14px;
+  }
+
+  .typing-prompt,
+  .typing-result {
+    padding: 14px;
+  }
+
+  .typing-input {
+    min-height: 104px;
+    padding: 13px;
+  }
+
+  .typing-list {
+    max-height: 260px;
+  }
+
+  .vocab-quiz-word,
+  .vocab-page-review .flash-word {
+    font-size: 28px;
+  }
+
+  .vocab-page-review .rate-row {
+    grid-template-columns: 1fr;
+  }
+
+  .discover-section .card-pad {
+    padding: 16px;
+  }
+
+  .source-directory-item .btnrow {
+    justify-content: stretch;
+  }
+}
+
+@media (max-width: 420px) {
+  .vocab-page-summary,
+  .practice-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-title {
+    font-size: 22px;
+  }
+
+  .reading-output {
+    padding: 16px;
+    font-size: 15px;
   }
 }
