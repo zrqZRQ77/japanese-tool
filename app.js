@@ -998,7 +998,7 @@ function isArticleUrl(value){
 async function analyzeSourceInput(){
   const value = sourceInputValue();
   if(!value){
-    setImportStatus('请先粘贴日语原文、文章链接，或上传 PDF / Word / TXT。', 'error');
+    setImportStatus('请先粘贴日语原文、文章链接，或上传 TXT。PDF / Word 需要后端解析服务。', 'error');
     document.getElementById('inputText')?.focus();
     return;
   }

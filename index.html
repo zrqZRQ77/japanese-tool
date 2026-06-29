@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>読める · 日语阅读辅助工具 - 自动标注假名释义</title>
-<meta name="description" content="日语阅读辅助工具，自动标注假名和释义，支持PDF/Word/TXT导入，JLPT词汇分级，一键导出Anki，间隔复习系统">
+<meta name="description" content="日语阅读辅助工具，自动标注假名和释义，支持文本和TXT导入，JLPT词汇分级，一键导出Anki，间隔复习系统">
 <meta name="keywords" content="日语学习,日语阅读,JLPT,N5,N4,N3,N2,N1,假名标注,Anki,间隔复习">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260629-31">
+<link rel="stylesheet" href="styles.css?v=20260629-32">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -42,7 +42,7 @@
     </div>
 
     <div class="hero-features">
-      <span>支持 PDF / Word / TXT</span>
+      <span>文本 / TXT 可直接使用</span>
       <span>自动标注假名和释义</span>
       <span>一键导出 Anki 牌组</span>
     </div>
@@ -124,7 +124,7 @@
           <!-- 输入区域 -->
           <div class="source-composer" id="sourceComposer">
             <div class="source-dropzone">
-              <textarea id="inputText" placeholder="粘贴日语原文，或粘贴一篇日语文章链接；也可以上传 PDF / Word / TXT 资料。"></textarea>
+              <textarea id="inputText" placeholder="粘贴日语原文，或粘贴一篇日语文章链接；TXT 可直接上传，PDF / Word 需要解析服务。"></textarea>
               <div class="source-actions">
                 <button class="btn-primary" onclick="analyzeSourceInput()">开始阅读</button>
                 <button class="btn-ghost" type="button" onclick="document.getElementById('documentFileInput').click()">上传文件</button>
@@ -132,7 +132,7 @@
               </div>
               <input id="articleUrlInput" type="hidden">
               <input id="documentFileInput" type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" hidden onchange="extractUploadedFile(this.files[0])">
-              <div class="source-help">支持：直接文本、文章链接、PDF（20 MB）、Word / DOCX（10 MB）、TXT（2 MB）。</div>
+              <div class="source-help">直接可用：文本、TXT（2 MB）。PDF / Word 需要后端解析服务。</div>
               <div class="import-status" id="importStatus">把资料放进来后，点击「开始阅读」。</div>
             </div>
 
@@ -239,6 +239,14 @@
         <div class="card-head">
           <span class="card-title"><span class="tag">生词</span>生词本与复习</span>
         </div>
+        <section class="page-focus">
+          <div>
+            <span class="module-kicker">现在做什么</span>
+            <h2>先复习到期生词</h2>
+            <p>只看需要处理的词；导出、清空和其他管理操作先收起来。</p>
+          </div>
+          <button class="btn-primary" onclick="startReview()">开始复习</button>
+        </section>
         <div class="vocab-page-summary">
           <div><b id="vocabCountPage">0</b><span>已收藏</span></div>
           <div><b id="dueCountPage">0</b><span>到期复习</span></div>
@@ -287,6 +295,13 @@
     <div class="card grammar-section">
       <div class="card-pad">
         <div class="card-head"><span class="card-title"><span class="tag">语法</span>语法点词典(Beta)</span></div>
+        <section class="page-focus">
+          <div>
+            <span class="module-kicker">现在做什么</span>
+            <h2>查一个语法点</h2>
+            <p>输入你在阅读里遇到的表达，比如「て形」「ながら」「にもかかわらず」。</p>
+          </div>
+        </section>
         <div class="lookup-status" style="margin-bottom:10px;">这是一份独立的语法参考词典，和你在「阅读」里分析的文章内容无关，可以随时搜索查阅。</div>
         <input class="grammar-search" id="grammarSearch" placeholder="搜索语法点,比如「は」「て形」「敬语」……" oninput="renderGrammar()">
         <div class="grammar-grid" id="grammarGrid"></div>
@@ -307,6 +322,13 @@
             <span class="unlock-pill unlocked">基础句型：可练习</span>
           </div>
         </div>
+        <section class="page-focus compact">
+          <div>
+            <span class="module-kicker">现在做什么</span>
+            <h2>先选一种练习</h2>
+            <p>选完后页面只展开对应模块，其它练习先隐藏。</p>
+          </div>
+        </section>
         <div class="practice-start-row">
           <button class="btn-primary" id="startArticlePracticeBtn" onclick="focusPracticeModule('article')">开始文章理解</button>
           <button class="btn-ghost" id="startVocabPracticeBtn" onclick="focusPracticeModule('vocab')">练生词</button>
@@ -431,6 +453,14 @@
     <div class="card discover-section">
       <div class="card-pad">
         <div class="card-head"><span class="card-title"><span class="tag">来源</span>找阅读材料</span></div>
+        <section class="page-focus">
+          <div>
+            <span class="module-kicker">现在做什么</span>
+            <h2>把下一篇加入阅读清单</h2>
+            <p>先打开一个来源网站，复制具体文章链接，再回到这里保存。</p>
+          </div>
+          <button class="btn-primary" onclick="document.getElementById('readingQueueUrlInput')?.focus()">添加链接</button>
+        </section>
         <section class="reading-queue-section" aria-labelledby="readingQueueTitle">
           <div class="reading-queue-head">
             <div>
@@ -458,12 +488,19 @@
     <div class="card test-section">
       <div class="card-pad">
         <div class="card-head"><span class="card-title"><span class="tag">测试</span>3分钟快速定位水平</span></div>
+        <section class="page-focus">
+          <div>
+            <span class="module-kicker">现在做什么</span>
+            <h2>先做一次水平测试</h2>
+            <p>完成后会推荐更合适的阅读材料等级。</p>
+          </div>
+          <button class="btn-primary" onclick="startLevelTest()">开始测试</button>
+        </section>
         <div class="test-status">
           <span class="status-label">状态：</span>
           <span class="status-value" id="levelResultBadge">未测试</span>
         </div>
         <div class="test-actions">
-          <button class="btn-primary" onclick="startLevelTest()">开始水平测试</button>
           <button class="btn-ghost" onclick="resetLevelTest()">重新测试</button>
         </div>
         <div class="lookup-status" id="levelResult">完成后会推荐适合你的阅读等级，并在「找材料」里高亮相近来源。</div>
@@ -478,12 +515,23 @@
       <div class="card-pad">
         <div class="card-head">
           <span class="card-title"><span class="tag">历史</span>学习记录</span>
+        </div>
+        <section class="page-focus">
+          <div>
+            <span class="module-kicker">现在做什么</span>
+            <h2>继续最近的学习</h2>
+            <p>查看 7 天积累，或打开最近读过的文章继续复习。</p>
+          </div>
+          <button class="btn-primary" onclick="switchWorkspace('reading')">继续阅读</button>
+        </section>
+        <details class="progressive-panel">
+          <summary>备份与恢复</summary>
           <div class="history-toolbar">
             <button class="btn-ghost" onclick="backupData()">备份数据</button>
             <button class="btn-ghost" onclick="restoreData()">恢复备份</button>
             <input id="backupFileInput" type="file" accept="application/json,.json" hidden onchange="importLearningBackup(this.files[0])">
           </div>
-        </div>
+        </details>
         <section class="weekly-progress" aria-labelledby="weeklyProgressTitle">
           <div class="history-subhead">
             <div>
@@ -656,6 +704,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260629-31"></script>
+<script src="app.js?v=20260629-32"></script>
 </body>
 </html>
