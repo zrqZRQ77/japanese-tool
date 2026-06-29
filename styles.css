@@ -1278,6 +1278,10 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .practice-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .typing-grid {
     grid-template-columns: 1fr;
   }
@@ -1754,6 +1758,37 @@ body.has-reading .article-practice-body {
   border-bottom: 1px solid var(--line);
 }
 
+.practice-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  padding: 16px 0 4px;
+}
+
+.practice-summary-grid div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fcfcfb;
+}
+
+.practice-summary-grid b {
+  display: block;
+  color: var(--sumi);
+  font-size: 18px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.practice-summary-grid span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
 .unlock-pill,
 .module-lock {
   display: inline-flex;
@@ -1913,6 +1948,27 @@ body.has-reading .article-practice-body {
   color: var(--muted);
   margin-top: 6px;
   line-height: 1.7;
+}
+
+.vocab-practice-tag {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+  vertical-align: middle;
+}
+
+.vocab-practice-tag.needs-work {
+  background: rgba(200, 72, 67, 0.1);
+  color: var(--trap);
+}
+
+.vocab-practice-tag.practiced {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* ===== 上线前界面整理：更轻的主页和统一工作台 ===== */
@@ -2464,7 +2520,8 @@ body[data-view="discover"] .discover-section {
 
 @media (max-width: 760px) {
   .vocab-page-summary,
-  .vocab-page-layout {
+  .vocab-page-layout,
+  .practice-summary-grid {
     grid-template-columns: 1fr;
   }
 

@@ -132,7 +132,7 @@ function syncVocabPanelData() {
   const listMarkup = vocab.map(v => `
       <li class="vocab-item">
         <div>
-          <div class="vocab-word">${escapeHtml(v.word)}</div>
+          <div class="vocab-word">${escapeHtml(v.word)}${vocabPracticeTag(v)}</div>
           <div class="vocab-meta">${escapeHtml(v.reading || '')}${v.reading && v.meaning ? ' · ' : ''}${escapeHtml(v.meaning || '')}</div>
         </div>
         <button class="vocab-remove" onclick="removeFromVocab('${encodeURIComponent(v.word)}')" aria-label="移除 ${escapeHtml(v.word)}">×</button>
@@ -240,6 +240,7 @@ let currentTypingIndex = 0;
 let currentVocabPracticeIndex = 0;
 let vocabPracticeAnswerVisible = false;
 let articlePracticeMode = 'cloze';
+let PRACTICE_STATS = loadPracticeStats();
 let CURRENT_ARTICLE_TEXT = '';
 let CLOZE_ITEMS = [];
 let RETELL_RECOGNITION = null;
@@ -256,6 +257,75 @@ try{ RUBY_OVERRIDES = JSON.parse(safeStorage.getItem('reading_ruby_overrides') |
 let IS_ANNOTATION_EDITING = false;
 let CURRENT_FOOTNOTES = [];
 let READING_HISTORY = [];
+
+function practiceDateKey(){
+  return new Date().toISOString().slice(0, 10);
+}
+
+function defaultPracticeStats(){
+  return {
+    date: practiceDateKey(),
+    total: 0,
+    vocab: { again:0, hard:0, easy:0 },
+    typing: { count:0, lastScore:null },
+    cloze: { count:0, lastCorrect:null, lastTotal:null }
+  };
+}
+
+function loadPracticeStats(){
+  try{
+    const stored = JSON.parse(safeStorage.getItem('reading_practice_stats') || 'null');
+    if(stored && stored.date === practiceDateKey()){
+      return {
+        ...defaultPracticeStats(),
+        ...stored,
+        vocab: { again:0, hard:0, easy:0, ...(stored.vocab || {}) },
+        typing: { count:0, lastScore:null, ...(stored.typing || {}) },
+        cloze: { count:0, lastCorrect:null, lastTotal:null, ...(stored.cloze || {}) }
+      };
+    }
+  }catch{}
+  return defaultPracticeStats();
+}
+
+function savePracticeStats(){
+  safeStorage.setItem('reading_practice_stats', JSON.stringify(PRACTICE_STATS));
+}
+
+function recordPracticeResult(type, payload = {}){
+  if(PRACTICE_STATS.date !== practiceDateKey()) PRACTICE_STATS = defaultPracticeStats();
+  PRACTICE_STATS.total += 1;
+  if(type === 'typing'){
+    PRACTICE_STATS.typing.count += 1;
+    PRACTICE_STATS.typing.lastScore = payload.score;
+  }
+  if(type === 'cloze'){
+    PRACTICE_STATS.cloze.count += 1;
+    PRACTICE_STATS.cloze.lastCorrect = payload.correct;
+    PRACTICE_STATS.cloze.lastTotal = payload.total;
+  }
+  if(type === 'vocab'){
+    const rating = payload.rating || 'hard';
+    PRACTICE_STATS.vocab[rating] = (PRACTICE_STATS.vocab[rating] || 0) + 1;
+  }
+  savePracticeStats();
+  renderPracticeSummary();
+}
+
+function renderPracticeSummary(){
+  const grid = document.getElementById('practiceSummaryGrid');
+  if(!grid) return;
+  const typingScore = PRACTICE_STATS.typing.lastScore === null ? '未练习' : `${PRACTICE_STATS.typing.lastScore}%`;
+  const clozeScore = PRACTICE_STATS.cloze.lastTotal === null ? '未练习' : `${PRACTICE_STATS.cloze.lastCorrect}/${PRACTICE_STATS.cloze.lastTotal}`;
+  grid.innerHTML = `
+    <div><b>${PRACTICE_STATS.total}</b><span>今日练习</span></div>
+    <div><b>${PRACTICE_STATS.vocab.easy}</b><span>认识</span></div>
+    <div><b>${PRACTICE_STATS.vocab.hard}</b><span>模糊</span></div>
+    <div><b>${PRACTICE_STATS.vocab.again}</b><span>不认识</span></div>
+    <div><b>${typingScore}</b><span>打字最近</span></div>
+    <div><b>${clozeScore}</b><span>挖空最近</span></div>
+  `;
+}
 
 const READING_SOURCES = [
   {level:'N5-N4', title:'NHK NEWS WEB EASY', url:'https://www3.nhk.or.jp/news/easy/', note:'简明新闻，适合入门到初中级。'},
@@ -406,6 +476,7 @@ function switchWorkspace(view){
     refreshRetellAdvice();
     renderTypingPractice();
     renderVocabPractice();
+    renderPracticeSummary();
   }
   if(view === 'discover') renderSourceDirectory();
   if(view === 'history') renderReadingHistory();
@@ -2151,6 +2222,7 @@ function checkTypingAnswer(){
     <div class="typing-diff">${result.html}</div>
     <div class="typing-answer">参考答案: ${escapeHtml(prompt.ja)}</div>
   `;
+  recordPracticeResult('typing', { score });
 }
 
 function compareTypingText(actual, expected){
@@ -2346,12 +2418,15 @@ function rateVocabPractice(rating){
     } else {
       vocabItem.repetition = Math.min((vocabItem.repetition || 0) + 1, SRS_STEPS_MIN.length - 1);
     }
+    vocabItem.lastPracticeAt = Date.now();
+    vocabItem.lastPracticeRating = rating;
     const mins = SRS_STEPS_MIN[vocabItem.repetition];
     vocabItem.interval = mins;
     vocabItem.dueAt = Date.now() + mins * 60000;
     saveVocab();
     renderVocab();
   }
+  recordPracticeResult('vocab', { rating });
   const result = document.getElementById('vocabPracticeResult');
   if(result){
     const label = rating === 'again' ? '不认识' : rating === 'hard' ? '模糊' : '认识';
@@ -2427,6 +2502,7 @@ function checkCloze(){
     if(ok) correct += 1;
   });
   document.getElementById('clozeScore').textContent = `正确 ${correct} / ${CLOZE_ITEMS.length} —— 没填对的空格鼠标悬停可以看正确答案`;
+  recordPracticeResult('cloze', { correct, total: CLOZE_ITEMS.length });
 }
 
 function revealCloze(){
@@ -2582,6 +2658,8 @@ async function loadVocab(){
     if(v.interval===undefined) v.interval = 0;
     if(v.dueAt===undefined) v.dueAt = Date.now();
     if(v.level===undefined) v.level = 'N5';
+    if(v.lastPracticeAt===undefined) v.lastPracticeAt = null;
+    if(v.lastPracticeRating===undefined) v.lastPracticeRating = '';
   });
   renderVocab();
 }
@@ -2615,7 +2693,8 @@ function addCustomToVocab(word, reading = '', meaning = '用户添加', level = 
   vocabData.unshift({
     word:normalized, reading, meaning,
     level, pos,
-    repetition:0, interval:0, dueAt: Date.now()
+    repetition:0, interval:0, dueAt: Date.now(),
+    lastPracticeAt:null, lastPracticeRating:''
   });
   saveVocab();
   renderVocab();
@@ -2644,10 +2723,11 @@ function renderVocab(){
     const tag = isDue
       ? '<span class="vocab-due-tag due-now">待复习</span>'
       : `<span class="vocab-due-tag due-later">${formatDue(v.dueAt)}</span>`;
+    const practiceTag = vocabPracticeTag(v);
     return `
     <li>
       <div>
-        <span class="vocab-word">${escapeHtml(v.word)}<span style="font-size:11px;color:var(--ink-soft);font-weight:400;margin-left:6px;">${escapeHtml(v.reading || '')}</span>${tag}</span>
+        <span class="vocab-word">${escapeHtml(v.word)}<span style="font-size:11px;color:var(--ink-soft);font-weight:400;margin-left:6px;">${escapeHtml(v.reading || '')}</span>${tag}${practiceTag}</span>
         <span class="vocab-meaning">${escapeHtml(v.meaning || '')}</span>
       </div>
       <button class="vocab-remove" onclick="removeFromVocab('${encodeURIComponent(v.word)}')" aria-label="移除 ${escapeHtml(v.word)}">×</button>
@@ -2655,6 +2735,14 @@ function renderVocab(){
   `;}).join('');
   updateDueCount();
   syncVocabPanelData();
+}
+
+function vocabPracticeTag(v){
+  if(!v.lastPracticeAt) return '';
+  if(v.lastPracticeRating === 'again') return '<span class="vocab-practice-tag needs-work">需加强</span>';
+  if(v.lastPracticeRating === 'hard') return '<span class="vocab-practice-tag needs-work">模糊</span>';
+  if(v.lastPracticeRating === 'easy') return '<span class="vocab-practice-tag practiced">已练过</span>';
+  return '';
 }
 
 function formatDue(ts){
@@ -3173,6 +3261,7 @@ async function initializeApp(){
 
   renderGrammar();
   renderSourceDirectory();
+  renderPracticeSummary();
   const savedLevelResult = safeStorage.getItem('reading_level_result');
   if(savedLevelResult) showLevelResult(savedLevelResult);
   setTokenizerStatus('默认使用轻量词库，需要时可手动开启智能分词', '');
