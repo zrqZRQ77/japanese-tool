@@ -4097,6 +4097,13 @@ function renderSourceDirectory(){
   `).join('');
 }
 
+function openSourceDirectoryPanel(){
+  switchWorkspace('discover');
+  const panel = document.querySelector('.source-directory-panel');
+  if(panel) panel.open = true;
+  document.getElementById('sourceDirectory')?.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
 function useSourceUrl(encodedUrl){
   clearActiveReadingQueueItem();
   const url = decodeURIComponent(encodedUrl);
@@ -4147,14 +4154,14 @@ function scoreLevelTest(){
   safeStorage.setItem('reading_level_result', result);
   showLevelResult(result);
   renderSourceDirectory();
-  document.getElementById('sourceDirectory')?.scrollIntoView({behavior:'smooth', block:'nearest'});
+  openSourceDirectoryPanel();
 }
 
 function showLevelResult(result){
   const badge = document.getElementById('levelResultBadge');
   const box = document.getElementById('levelResult');
   if(badge) badge.textContent = result.split('｜')[0] || result;
-  if(box) box.innerHTML = `建议从 <b>${escapeHtml(result.split('｜')[0] || result)}</b> 的材料开始。<br><span>${escapeHtml(result)}</span><br><button class="btn-ghost" onclick="switchWorkspace('discover')" style="margin-top:12px;padding:6px 16px;font-size:13px;">前往「找材料」查看推荐</button>`;
+  if(box) box.innerHTML = `建议从 <b>${escapeHtml(result.split('｜')[0] || result)}</b> 的材料开始。<br><span>${escapeHtml(result)}</span><br><button class="btn-ghost" onclick="openSourceDirectoryPanel()" style="margin-top:12px;padding:6px 16px;font-size:13px;">前往「找材料」查看推荐</button>`;
 }
 
 function resetLevelTest(){

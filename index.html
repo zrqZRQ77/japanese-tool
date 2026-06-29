@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260629-34">
+<link rel="stylesheet" href="styles.css?v=20260629-36">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -231,15 +231,18 @@
           <div class="card-pad">
             <div class="card-head">
               <span class="card-title"><span class="tag">生词本</span>已收藏 <span id="vocabCount">0</span> 个</span>
-              <div style="display:flex;gap:8px;align-items:center;">
-                <button class="btn-ghost" onclick="exportVocabCsv()" style="padding:4px 10px;font-size:12px;">导出CSV</button>
-                <button class="btn-ghost" onclick="exportAnkiTsv()" style="padding:4px 10px;font-size:12px;">导出Anki</button>
-                <button class="btn-ghost" onclick="clearAllVocab()" style="padding:4px 10px;font-size:12px;color:var(--trap);border-color:var(--trap);">清空</button>
-              </div>
             </div>
             <div class="export-inline-status" id="vocabExportStatus" aria-live="polite"></div>
             <ul class="vocab-list" id="vocabList"></ul>
             <div class="vocab-empty" id="vocabEmptyMsg">还没有收藏的词 —— 在词义卡片里点「加入生词本」试试。</div>
+            <details class="mini-disclosure">
+              <summary>管理生词</summary>
+              <div class="mini-action-row">
+                <button class="btn-ghost" onclick="exportVocabCsv()">导出CSV</button>
+                <button class="btn-ghost" onclick="exportAnkiTsv()">导出Anki</button>
+                <button class="btn-ghost danger-action" onclick="clearAllVocab()">清空</button>
+              </div>
+            </details>
           </div>
         </div>
 
@@ -255,12 +258,12 @@
         <section class="page-focus">
           <div>
             <span class="module-kicker">现在做什么</span>
-            <h2>先复习到期生词</h2>
-            <p>只看需要处理的词；导出、清空和其他管理操作先收起来。</p>
+            <h2>先整理生词</h2>
+            <p>默认只看词汇列表；复习、导出和清空放在下面，需要时再打开。</p>
           </div>
-          <button class="btn-primary" onclick="startReview()">开始复习</button>
+          <button class="btn-primary" onclick="document.getElementById('vocabSearchInput')?.focus()">搜索生词</button>
         </section>
-        <div class="vocab-page-summary">
+        <div class="vocab-page-summary quiet-summary">
           <div><b id="vocabCountPage">0</b><span>已收藏</span></div>
           <div><b id="dueCountPage">0</b><span>到期复习</span></div>
         </div>
@@ -273,35 +276,33 @@
           </div>
         </details>
         <div class="export-inline-status" id="vocabExportStatusPage" aria-live="polite"></div>
-        <div class="vocab-page-layout">
-          <section class="vocab-page-list">
-            <div class="section-header">
-              <span class="section-title">词汇列表</span>
+        <section class="vocab-page-list primary-task-panel">
+          <div class="section-header">
+            <span class="section-title">词汇列表</span>
+          </div>
+          <div class="vocab-filter-bar">
+            <input id="vocabSearchInput" class="vocab-search-input" type="search" placeholder="搜索单词、读音、释义" oninput="renderVocab()">
+            <div class="vocab-filter-tabs" aria-label="生词筛选">
+              <button type="button" class="vocab-filter-tab active" data-filter="all" onclick="setVocabFilter('all')">全部</button>
+              <button type="button" class="vocab-filter-tab" data-filter="due" onclick="setVocabFilter('due')">到期</button>
+              <button type="button" class="vocab-filter-tab" data-filter="weak" onclick="setVocabFilter('weak')">需加强</button>
+              <button type="button" class="vocab-filter-tab" data-filter="practiced" onclick="setVocabFilter('practiced')">已练过</button>
             </div>
-            <div class="vocab-filter-bar">
-              <input id="vocabSearchInput" class="vocab-search-input" type="search" placeholder="搜索单词、读音、释义" oninput="renderVocab()">
-              <div class="vocab-filter-tabs" aria-label="生词筛选">
-                <button type="button" class="vocab-filter-tab active" data-filter="all" onclick="setVocabFilter('all')">全部</button>
-                <button type="button" class="vocab-filter-tab" data-filter="due" onclick="setVocabFilter('due')">到期</button>
-                <button type="button" class="vocab-filter-tab" data-filter="weak" onclick="setVocabFilter('weak')">需加强</button>
-                <button type="button" class="vocab-filter-tab" data-filter="practiced" onclick="setVocabFilter('practiced')">已练过</button>
-              </div>
+          </div>
+          <ul class="vocab-list" id="vocabListPage"></ul>
+          <div class="vocab-empty" id="vocabEmptyPage">还没有收藏的词。先去阅读页分析一篇文章，再点击词语加入生词本。</div>
+        </section>
+        <details class="vocab-review-disclosure" id="vocabReviewDisclosure">
+          <summary>闪卡复习</summary>
+          <section class="vocab-page-review">
+            <p class="review-copy">阅读中收藏的词会沉淀到这里；积累后可以按间隔重复复习。</p>
+            <div class="review-actions">
+              <button class="btn-ghost" onclick="reviewAllVocab()">全部复习</button>
+              <button class="btn-primary" id="startReviewBtn" onclick="startReview()">复习到期词</button>
             </div>
-            <ul class="vocab-list" id="vocabListPage"></ul>
-            <div class="vocab-empty" id="vocabEmptyPage">还没有收藏的词。先去阅读页分析一篇文章，再点击词语加入生词本。</div>
+            <div id="flashArea" class="flash-page-placeholder">先积累几个生词，再开始复习。</div>
           </section>
-          <details class="vocab-review-disclosure" id="vocabReviewDisclosure">
-            <summary>闪卡复习</summary>
-            <section class="vocab-page-review">
-              <p class="review-copy">阅读中收藏的词会沉淀到这里；积累后可以按间隔重复复习。</p>
-              <div class="review-actions">
-                <button class="btn-ghost" onclick="reviewAllVocab()">全部复习</button>
-                <button class="btn-primary" id="startReviewBtn" onclick="startReview()">复习到期词</button>
-              </div>
-              <div id="flashArea" class="flash-page-placeholder">先积累几个生词，再开始复习。</div>
-            </section>
-          </details>
-        </div>
+        </details>
       </div>
     </div>
 
@@ -347,17 +348,23 @@
           <button class="btn-ghost" id="startVocabPracticeBtn" onclick="focusPracticeModule('vocab')">练生词</button>
           <button class="btn-ghost" id="startTypingPracticeBtn" onclick="focusPracticeModule('typing')">练基础句型</button>
         </div>
-        <div class="practice-summary-grid" id="practiceSummaryGrid" aria-label="今日练习总结"></div>
-        <section class="practice-review-panel" aria-labelledby="practiceReviewTitle">
-          <div class="practice-review-head">
-            <div>
-              <span class="module-kicker">错题回看</span>
-              <h3 id="practiceReviewTitle">最近需要补的地方</h3>
+        <details class="progressive-panel practice-secondary-panel">
+          <summary>今日练习总结</summary>
+          <div class="practice-summary-grid" id="practiceSummaryGrid" aria-label="今日练习总结"></div>
+        </details>
+        <details class="progressive-panel practice-secondary-panel">
+          <summary>错题回看</summary>
+          <section class="practice-review-panel" aria-labelledby="practiceReviewTitle">
+            <div class="practice-review-head">
+              <div>
+                <span class="module-kicker">错题回看</span>
+                <h3 id="practiceReviewTitle">最近需要补的地方</h3>
+              </div>
+              <button class="btn-ghost" type="button" onclick="clearPracticeReview()">清空已完成</button>
             </div>
-            <button class="btn-ghost" type="button" onclick="clearPracticeReview()">清空已完成</button>
-          </div>
-          <div class="practice-review-list" id="practiceReviewList"></div>
-        </section>
+            <div class="practice-review-list" id="practiceReviewList"></div>
+          </section>
+        </details>
 
         <div class="practice-module article-module" id="articlePracticeModule">
           <div class="practice-module-head">
@@ -490,11 +497,16 @@
           <div class="reading-queue-status" id="readingQueueStatus" aria-live="polite"></div>
           <div class="reading-queue-list" id="readingQueueList"></div>
         </section>
-        <div class="source-directory-head">
-          <h2>按等级找来源</h2>
-          <p>先打开网站选择一篇具体文章，再把文章链接加入上面的清单。</p>
-        </div>
-        <div class="discover-sources" id="sourceDirectory"></div>
+        <details class="progressive-panel source-directory-panel">
+          <summary>按等级找来源</summary>
+          <div class="source-directory-head">
+            <div>
+              <h2>推荐来源</h2>
+              <p>先打开网站选择一篇具体文章，再把文章链接加入上面的清单。</p>
+            </div>
+          </div>
+          <div class="discover-sources" id="sourceDirectory"></div>
+        </details>
       </div>
     </div>
 
@@ -545,17 +557,20 @@
             <input id="backupFileInput" type="file" accept="application/json,.json" hidden onchange="importLearningBackup(this.files[0])">
           </div>
         </details>
-        <section class="weekly-progress" aria-labelledby="weeklyProgressTitle">
-          <div class="history-subhead">
-            <div>
-              <h2 id="weeklyProgressTitle">最近 7 天</h2>
-              <p>阅读之外，也看看练习有没有慢慢积累起来。</p>
+        <details class="progressive-panel history-progress-panel">
+          <summary>最近 7 天</summary>
+          <section class="weekly-progress" aria-labelledby="weeklyProgressTitle">
+            <div class="history-subhead">
+              <div>
+                <h2 id="weeklyProgressTitle">学习趋势</h2>
+                <p>阅读之外，也看看练习有没有慢慢积累起来。</p>
+              </div>
+              <button class="btn-ghost" onclick="switchWorkspace('retell')">继续练习</button>
             </div>
-            <button class="btn-ghost" onclick="switchWorkspace('retell')">继续练习</button>
-          </div>
-          <div class="weekly-progress-summary" id="weeklyProgressSummary"></div>
-          <div class="weekly-practice-chart" id="weeklyPracticeChart" aria-label="最近 7 天练习次数"></div>
-        </section>
+            <div class="weekly-progress-summary" id="weeklyProgressSummary"></div>
+            <div class="weekly-practice-chart" id="weeklyPracticeChart" aria-label="最近 7 天练习次数"></div>
+          </section>
+        </details>
         <div class="history-subhead article-history-head">
           <div>
             <h2>最近读过的文章</h2>
@@ -717,6 +732,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260629-34"></script>
+<script src="app.js?v=20260629-36"></script>
 </body>
 </html>

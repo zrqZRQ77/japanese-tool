@@ -3135,6 +3135,93 @@ body[data-view="discover"] .discover-section {
   padding: 0 14px 14px;
 }
 
+.primary-task-panel {
+  margin-top: 12px;
+}
+
+.vocab-page-summary.quiet-summary {
+  grid-template-columns: repeat(2, minmax(0, 140px));
+  gap: 8px;
+  margin: -4px 0 12px;
+}
+
+.vocab-page-summary.quiet-summary > div {
+  padding: 10px 12px;
+  background: transparent;
+}
+
+.vocab-page-summary.quiet-summary b {
+  font-size: 20px;
+}
+
+.mini-disclosure {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.mini-disclosure summary {
+  min-height: 38px;
+  padding: 10px 0 0;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 750;
+  list-style: none;
+}
+
+.mini-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.mini-disclosure summary::after {
+  content: '+';
+  float: right;
+}
+
+.mini-disclosure[open] summary::after {
+  content: '-';
+}
+
+.mini-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0 2px;
+}
+
+.mini-action-row .btn-ghost {
+  min-height: 32px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.practice-secondary-panel {
+  margin: 10px 0 0;
+}
+
+.practice-secondary-panel .practice-summary-grid {
+  padding: 0 14px 14px;
+}
+
+.practice-secondary-panel .practice-review-panel {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 12px 12px;
+  background: #fff;
+}
+
+.source-directory-panel,
+.history-progress-panel {
+  margin-top: 18px;
+}
+
+.source-directory-panel .source-directory-head,
+.source-directory-panel .discover-sources,
+.history-progress-panel .weekly-progress {
+  padding: 0 14px 14px;
+}
+
 .vocab-filter-bar {
   display: grid;
   gap: 10px;
