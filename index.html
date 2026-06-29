@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260628-18">
+<link rel="stylesheet" href="styles.css?v=20260628-19">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -246,83 +246,114 @@
       </div>
     </div>
 
-    <div class="card typing-section">
+    <div class="card retell-section">
       <div class="card-pad">
-        <div class="practice-switch">
-          <button class="workspace-tab" data-view="retell" type="button" onclick="switchWorkspace('retell')">理解练习</button>
-          <button class="workspace-tab active" data-view="typing" type="button" onclick="switchWorkspace('typing')">打字练习</button>
-        </div>
-        <div class="card-head">
-          <span class="card-title"><span class="tag">输出</span>日语打字练习</span>
-        </div>
-        <div class="lookup-status" style="margin-bottom:10px;">打字练习用于补充基础句型；理解练习会优先使用你刚读过的文章。</div>
-        <div class="typing-grid">
+        <div class="practice-hero">
           <div>
-            <div class="typing-prompt">
-              <div class="typing-meta" id="typingMeta"></div>
-              <div class="typing-cn" id="typingPromptCn"></div>
-              <div class="typing-answer" id="typingAnswerPreview"></div>
+            <span class="tag">练习</span>
+            <h2>把阅读变成三段练习</h2>
+            <p>先用刚读过的文章做理解，再把生词拿来复习，最后用固定句型补基础输出。</p>
+          </div>
+          <div class="practice-unlock-strip" aria-label="练习解锁状态">
+            <span id="articlePracticeStatus" class="unlock-pill">文章理解：未解锁</span>
+            <span id="vocabPracticeStatus" class="unlock-pill">生词练习：未解锁</span>
+            <span class="unlock-pill unlocked">基础句型：可练习</span>
+          </div>
+        </div>
+
+        <div class="practice-module article-module">
+          <div class="practice-module-head">
+            <div>
+              <span class="module-kicker">文章理解</span>
+              <h3>挖空与复述</h3>
             </div>
-            <textarea class="typing-input" id="typingInput" placeholder="在这里输入日语答案……" oninput="clearTypingResult()"></textarea>
+            <span class="module-lock" id="articleModuleLock">需要先完成阅读</span>
+          </div>
+          <div class="lookup-status" id="clozeAdvice">在阅读页完成文章分析后，这里会自动解锁挖空练习。</div>
+          <div class="lookup-status" id="retellAdvice">复述练习会使用同一篇文章。</div>
+          <div class="article-practice-empty">
+            <p>先完成一篇阅读，系统会用刚才的文章生成理解练习。</p>
+            <button class="btn-primary" onclick="switchWorkspace('reading')">去阅读页导入文章</button>
+          </div>
+          <div class="article-practice-body">
+            <div class="practice-subgrid">
+              <section class="practice-subpanel">
+                <div class="section-header"><span class="section-title">挖空自测</span></div>
+                <div class="btnrow">
+                  <button class="btn-primary" onclick="generateCloze()">生成挖空测试</button>
+                  <button class="btn-ghost" onclick="checkCloze()">检查答案</button>
+                  <button class="btn-ghost" onclick="revealCloze()">显示答案</button>
+                </div>
+                <div class="reading-output cloze-output" id="clozeOutput">
+                  <span style="color:var(--ink-soft);font-size:14.5px;">点击「生成挖空测试」，会把刚才读过的文章里的生词挖空。</span>
+                </div>
+                <div class="typing-score" id="clozeScore"></div>
+              </section>
+              <section class="practice-subpanel">
+                <div class="section-header"><span class="section-title">复述</span></div>
+                <div class="btnrow">
+                  <button class="btn-ghost" onclick="speakOriginalForRetell()">朗读原文</button>
+                  <button class="btn-primary" id="retellRecordBtn" onclick="toggleRetellRecording()">开始录音复述</button>
+                </div>
+                <div class="typing-result" id="retellResult"></div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="practice-module vocab-practice-module">
+          <div class="practice-module-head">
+            <div>
+              <span class="module-kicker">生词练习</span>
+              <h3>基于生词本</h3>
+            </div>
+            <span class="module-lock" id="vocabModuleLock">需要先收藏生词</span>
+          </div>
+          <div class="lookup-status" id="vocabPracticeAdvice">阅读时收藏的词会在这里变成快速自测。</div>
+          <div class="vocab-practice-empty" id="vocabPracticeEmpty">
+            <p>生词本为空。先在阅读页点击词语，再加入生词本。</p>
+            <button class="btn-primary" onclick="switchWorkspace('reading')">去阅读页</button>
+          </div>
+          <div class="vocab-practice-body" id="vocabPracticeBody">
+            <div class="vocab-quiz-card" id="vocabQuizCard"></div>
             <div class="btnrow">
-              <button class="btn-primary" onclick="checkTypingAnswer()">检查</button>
-              <button class="btn-ghost" onclick="speakCurrentTypingAnswer()">朗读参考答案</button>
-              <button class="btn-ghost" onclick="showTypingAnswer()">显示答案</button>
-              <button class="btn-ghost" onclick="nextTypingPrompt()">下一题</button>
+              <button class="btn-ghost" onclick="prevVocabPractice()">上一词</button>
+              <button class="btn-primary" onclick="toggleVocabPracticeAnswer()">显示释义</button>
+              <button class="btn-ghost" onclick="markVocabPracticeKnown()">记住了</button>
+              <button class="btn-ghost" onclick="nextVocabPractice()">下一词</button>
             </div>
-            <div class="typing-result" id="typingResult"></div>
           </div>
-          <div class="typing-side">
-            <div class="typing-prompt">
-              <div class="typing-meta"><span class="typing-chip">N5-N4</span><span class="typing-chip">固定题库</span></div>
-              <div style="font-size:13px;color:var(--ink-soft);line-height:1.8;">选择一句中文提示，输入对应日语。先用固定句库练假名、助词和礼貌体，后面可以接入 AI 批改。</div>
+        </div>
+
+        <div class="practice-module">
+          <div class="practice-module-head">
+            <div>
+              <span class="module-kicker">基础句型</span>
+              <h3>N5-N4 打字题库</h3>
             </div>
-            <div class="typing-list" id="typingList"></div>
+            <span class="module-lock unlocked">随时可练</span>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card retell-section">
-      <div class="card-pad">
-        <div class="practice-switch">
-          <button class="workspace-tab active" data-view="retell" type="button" onclick="switchWorkspace('retell')">理解练习</button>
-          <button class="workspace-tab" data-view="typing" type="button" onclick="switchWorkspace('typing')">打字练习</button>
-        </div>
-        <div class="card-head"><span class="card-title"><span class="tag">理解</span>挖空自测</span></div>
-        <div class="lookup-status" id="clozeAdvice">在阅读页完成文章分析后，这里会自动解锁挖空练习。</div>
-        <div class="article-practice-empty">
-          <p>先完成一篇阅读，系统会用刚才的文章生成理解练习。</p>
-          <button class="btn-primary" onclick="switchWorkspace('reading')">去阅读页导入文章</button>
-        </div>
-        <div class="article-practice-body">
-          <div class="btnrow">
-            <button class="btn-primary" onclick="generateCloze()">生成挖空测试</button>
-            <button class="btn-ghost" onclick="checkCloze()">检查答案</button>
-            <button class="btn-ghost" onclick="revealCloze()">显示全部答案</button>
+          <div class="lookup-status">选择一句中文提示，输入对应日语；适合补假名、助词和礼貌体。</div>
+          <div class="typing-grid">
+            <div>
+              <div class="typing-prompt">
+                <div class="typing-meta" id="typingMeta"></div>
+                <div class="typing-cn" id="typingPromptCn"></div>
+                <div class="typing-answer" id="typingAnswerPreview"></div>
+              </div>
+              <textarea class="typing-input" id="typingInput" placeholder="在这里输入日语答案……" oninput="clearTypingResult()"></textarea>
+              <div class="btnrow">
+                <button class="btn-primary" onclick="checkTypingAnswer()">检查</button>
+                <button class="btn-ghost" onclick="speakCurrentTypingAnswer()">朗读答案</button>
+                <button class="btn-ghost" onclick="showTypingAnswer()">显示答案</button>
+                <button class="btn-ghost" onclick="nextTypingPrompt()">下一题</button>
+              </div>
+              <div class="typing-result" id="typingResult"></div>
+            </div>
+            <div class="typing-side">
+              <div class="typing-list" id="typingList"></div>
+            </div>
           </div>
-          <div class="reading-output" id="clozeOutput" style="min-height:120px;">
-            <span style="color:var(--ink-soft);font-size:14.5px;">点击「生成挖空测试」，会把刚才读过的文章里的生词挖空，凭上下文回忆并填写。</span>
-          </div>
-          <div class="typing-score" id="clozeScore" style="margin-top:10px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card retell-section">
-      <div class="card-pad">
-        <div class="card-head"><span class="card-title"><span class="tag">输出</span>口语复述</span></div>
-        <div class="lookup-status" id="retellAdvice">在阅读页完成文章分析后，这里会自动解锁复述练习。</div>
-        <div class="article-practice-empty">
-          <p>先完成一篇阅读，再用原文做朗读和复述。</p>
-          <button class="btn-primary" onclick="switchWorkspace('reading')">去阅读页导入文章</button>
-        </div>
-        <div class="article-practice-body">
-          <div class="btnrow">
-            <button class="btn-ghost" onclick="speakOriginalForRetell()">朗读原文</button>
-            <button class="btn-primary" id="retellRecordBtn" onclick="toggleRetellRecording()">开始录音复述</button>
-          </div>
-          <div class="typing-result" id="retellResult"></div>
         </div>
       </div>
     </div>
@@ -525,6 +556,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260628-18"></script>
+<script src="app.js?v=20260628-19"></script>
 </body>
 </html>

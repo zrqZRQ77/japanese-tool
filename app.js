@@ -162,6 +162,8 @@ function syncVocabPanelData() {
     const el = document.getElementById(id);
     if(el) el.textContent = dueCount;
   });
+  refreshPracticeStatus();
+  renderVocabPractice();
 }
 
 // ===== 菜单面板逻辑 =====
@@ -235,6 +237,8 @@ function ensureLearningData(){
 }
 
 let currentTypingIndex = 0;
+let currentVocabPracticeIndex = 0;
+let vocabPracticeAnswerVisible = false;
 let CURRENT_ARTICLE_TEXT = '';
 let CLOZE_ITEMS = [];
 let RETELL_RECOGNITION = null;
@@ -385,6 +389,7 @@ function setImportStatus(message, type = ''){
 let pendingImportMeta = null;
 function switchWorkspace(view){
   if(!['reading','typing','grammar','retell','discover','test','history','vocab'].includes(view)) return;
+  if(view === 'typing') view = 'retell';
   closeVocabPanel();
   document.body.dataset.view = view;
   document.querySelectorAll('.app-sidebar .nav-item').forEach(button=>{
@@ -396,8 +401,11 @@ function switchWorkspace(view){
     button.classList.toggle('active', button.dataset.view === view);
   });
   safeStorage.setItem('reading_workspace', view);
-  if(view === 'typing') renderTypingPractice();
-  if(view === 'retell') refreshRetellAdvice();
+  if(view === 'retell'){
+    refreshRetellAdvice();
+    renderTypingPractice();
+    renderVocabPractice();
+  }
   if(view === 'discover') renderSourceDirectory();
   if(view === 'history') renderReadingHistory();
   if(view === 'vocab') syncVocabPanelData();
@@ -2192,6 +2200,113 @@ function refreshRetellAdvice(){
   if(retell) retell.textContent = hasText
     ? '先点「朗读原文」听一遍，再点「开始录音复述」用自己的话讲一遍，结束后会展示原文和你的复述，自己对照检查。'
     : '先在「阅读」标签里分析一段文本，再回来练习复述。';
+  refreshPracticeStatus();
+}
+
+function refreshPracticeStatus(){
+  const hasText = !!CURRENT_ARTICLE_TEXT.trim();
+  const vocab = getAllVocab();
+  const vocabCount = vocab.length;
+  const dueCount = vocab.filter(v => isDue(v)).length;
+  const articleStatus = document.getElementById('articlePracticeStatus');
+  const vocabStatus = document.getElementById('vocabPracticeStatus');
+  const articleLock = document.getElementById('articleModuleLock');
+  const vocabLock = document.getElementById('vocabModuleLock');
+  const vocabAdvice = document.getElementById('vocabPracticeAdvice');
+
+  if(articleStatus){
+    articleStatus.textContent = hasText ? '文章理解：已解锁' : '文章理解：未解锁';
+    articleStatus.classList.toggle('unlocked', hasText);
+  }
+  if(vocabStatus){
+    vocabStatus.textContent = vocabCount ? `生词练习：${vocabCount} 个词` : '生词练习：未解锁';
+    vocabStatus.classList.toggle('unlocked', vocabCount > 0);
+  }
+  if(articleLock){
+    articleLock.textContent = hasText ? '已解锁' : '需要先完成阅读';
+    articleLock.classList.toggle('unlocked', hasText);
+  }
+  if(vocabLock){
+    vocabLock.textContent = vocabCount ? '已解锁' : '需要先收藏生词';
+    vocabLock.classList.toggle('unlocked', vocabCount > 0);
+  }
+  if(vocabAdvice){
+    vocabAdvice.textContent = vocabCount
+      ? `生词本共有 ${vocabCount} 个词，其中 ${dueCount} 个到期复习。这里可以先做快速自测。`
+      : '阅读时收藏的词会在这里变成快速自测。';
+  }
+}
+
+function getVocabPracticeItems(){
+  const vocab = getAllVocab();
+  const due = vocab.filter(v => isDue(v));
+  return due.length ? due : vocab;
+}
+
+function renderVocabPractice(){
+  const empty = document.getElementById('vocabPracticeEmpty');
+  const body = document.getElementById('vocabPracticeBody');
+  const card = document.getElementById('vocabQuizCard');
+  if(!empty || !body || !card) return;
+  const items = getVocabPracticeItems();
+  if(!items.length){
+    empty.style.display = 'block';
+    body.style.display = 'none';
+    card.innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none';
+  body.style.display = 'block';
+  currentVocabPracticeIndex = Math.max(0, Math.min(currentVocabPracticeIndex, items.length - 1));
+  const item = items[currentVocabPracticeIndex];
+  card.innerHTML = `
+    <div class="typing-meta">
+      <span class="typing-chip">${escapeHtml(item.level || '自选')}</span>
+      <span class="typing-chip">${currentVocabPracticeIndex + 1} / ${items.length}</span>
+      <span class="typing-chip">${isDue(item) ? '到期' : '未到期'}</span>
+    </div>
+    <div class="vocab-quiz-word">${escapeHtml(item.word)}</div>
+    <div class="vocab-quiz-reading">${vocabPracticeAnswerVisible ? escapeHtml(item.reading || '无假名') : '先回想读音和释义'}</div>
+    <div class="vocab-quiz-meaning">${vocabPracticeAnswerVisible ? escapeHtml(item.meaning || '无释义') : '点击「显示释义」检查'}</div>
+  `;
+}
+
+function nextVocabPractice(){
+  const items = getVocabPracticeItems();
+  if(!items.length) return;
+  currentVocabPracticeIndex = (currentVocabPracticeIndex + 1) % items.length;
+  vocabPracticeAnswerVisible = false;
+  renderVocabPractice();
+}
+
+function prevVocabPractice(){
+  const items = getVocabPracticeItems();
+  if(!items.length) return;
+  currentVocabPracticeIndex = (currentVocabPracticeIndex - 1 + items.length) % items.length;
+  vocabPracticeAnswerVisible = false;
+  renderVocabPractice();
+}
+
+function toggleVocabPracticeAnswer(){
+  vocabPracticeAnswerVisible = !vocabPracticeAnswerVisible;
+  renderVocabPractice();
+}
+
+function markVocabPracticeKnown(){
+  const items = getVocabPracticeItems();
+  const item = items[currentVocabPracticeIndex];
+  if(!item) return;
+  const vocabItem = vocabData.find(v => v.word === item.word);
+  if(vocabItem){
+    vocabItem.repetition = Math.min((vocabItem.repetition || 0) + 1, SRS_STEPS_MIN.length - 1);
+    const mins = SRS_STEPS_MIN[vocabItem.repetition];
+    vocabItem.interval = mins;
+    vocabItem.dueAt = Date.now() + mins * 60000;
+    saveVocab();
+    renderVocab();
+  }
+  vocabPracticeAnswerVisible = false;
+  renderVocabPractice();
 }
 
 function generateCloze(){

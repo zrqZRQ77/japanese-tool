@@ -1259,6 +1259,25 @@ button:disabled {
 }
 
 @media (max-width: 768px) {
+  .practice-hero,
+  .practice-module-head {
+    display: block;
+  }
+
+  .practice-unlock-strip {
+    justify-content: flex-start;
+    max-width: none;
+    margin-top: 14px;
+  }
+
+  .module-lock {
+    margin-top: 10px;
+  }
+
+  .practice-subgrid {
+    grid-template-columns: 1fr;
+  }
+
   .typing-grid {
     grid-template-columns: 1fr;
   }
@@ -1693,6 +1712,161 @@ body.has-reading .article-practice-empty {
 
 body.has-reading .article-practice-body {
   display: block;
+}
+
+.practice-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 8px 0 22px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+
+.practice-hero h2 {
+  margin: 10px 0 6px;
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.practice-hero p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.practice-unlock-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  max-width: 360px;
+}
+
+.unlock-pill,
+.module-lock {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f7f7f5;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.unlock-pill.unlocked,
+.module-lock.unlocked {
+  border-color: rgba(47, 111, 98, 0.22);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.practice-module {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.practice-module:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.practice-module-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.practice-module-head h3 {
+  margin: 2px 0 0;
+  font-size: 18px;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+.module-kicker {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.practice-subgrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.82fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.practice-subpanel {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fcfcfb;
+}
+
+.cloze-output {
+  min-height: 140px;
+  max-height: 360px;
+  overflow: auto;
+  margin-top: 12px;
+  padding: 18px;
+  font-size: 15px;
+  line-height: 2;
+}
+
+.vocab-practice-empty {
+  margin-top: 14px;
+  padding: 28px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fcfcfb;
+  color: var(--muted);
+}
+
+.vocab-practice-empty p {
+  margin: 0 0 16px;
+}
+
+.vocab-practice-body {
+  margin-top: 14px;
+}
+
+.vocab-quiz-card {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fcfcfb;
+  margin-bottom: 12px;
+}
+
+.vocab-quiz-word {
+  font-family: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  font-size: 34px;
+  line-height: 1.25;
+  margin: 12px 0 8px;
+}
+
+.vocab-quiz-reading {
+  color: var(--accent);
+  font-weight: 650;
+  min-height: 24px;
+}
+
+.vocab-quiz-meaning {
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.7;
 }
 
 /* ===== 上线前界面整理：更轻的主页和统一工作台 ===== */
