@@ -2759,6 +2759,7 @@ button,
   color: var(--muted);
   font-size: 13px;
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .reading-analysis-actions {
@@ -3108,6 +3109,7 @@ body[data-view="discover"] .discover-section {
   margin: 3px 0 0;
   color: var(--muted);
   font-size: 11px;
+  overflow-wrap: anywhere;
 }
 
 .reading-queue-actions {
@@ -3351,7 +3353,9 @@ body[data-view="discover"] .discover-section {
   }
 
   .reading-side {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .reading-workbench {
@@ -3384,6 +3388,11 @@ body[data-view="discover"] .discover-section {
     grid-template-columns: 1fr 1fr;
   }
 
+  .daily-goal-toggle,
+  .daily-plan-progress {
+    width: 100%;
+  }
+
   .daily-goal-settings button {
     grid-column: 1 / -1;
   }
@@ -3409,6 +3418,7 @@ body[data-view="discover"] .discover-section {
     padding: 20px;
     font-size: 16px;
     min-height: 280px;
+    overflow-wrap: anywhere;
   }
 
   .reading-main.card,
@@ -3429,6 +3439,16 @@ body[data-view="discover"] .discover-section {
 
   .practice-hero h2 {
     font-size: 21px;
+  }
+
+  .practice-unlock-strip {
+    justify-content: flex-start;
+    max-width: none;
+  }
+
+  .unlock-pill,
+  .module-lock {
+    white-space: normal;
   }
 
   .practice-start-row,
@@ -3565,19 +3585,28 @@ body[data-view="discover"] .discover-section {
   }
 
   .reading-queue-item {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .reading-queue-actions {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr auto;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
   }
 
   .reading-queue-actions .btn-primary,
   .reading-queue-actions .btn-ghost {
     min-width: 0;
     white-space: nowrap;
+    width: 100%;
+  }
+
+  .reading-queue-remove {
+    width: 100%;
+    border-radius: 8px;
+    background: #fafbf9;
   }
 
   .discover-section .card-pad {
@@ -3598,6 +3627,12 @@ body[data-view="discover"] .discover-section {
 
   .hero-title {
     font-size: 22px;
+  }
+
+  .daily-goal-settings,
+  .history-toolbar,
+  .vocab-filter-tabs {
+    grid-template-columns: 1fr;
   }
 
   .reading-output {
