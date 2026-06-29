@@ -2691,9 +2691,181 @@ body[data-view="discover"] .discover-section {
   padding: 28px;
 }
 
-.discover-section .lookup-status {
-  max-width: 620px;
-  margin-bottom: 22px !important;
+.reading-queue-section {
+  padding: 8px 0 28px;
+  margin-bottom: 26px;
+  border-bottom: 1px solid var(--line);
+}
+
+.reading-queue-head,
+.source-directory-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.reading-queue-head h2,
+.source-directory-head h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.reading-queue-head p,
+.source-directory-head p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.reading-queue-count {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eef0ee;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.reading-queue-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 240px) minmax(260px, 1fr) auto;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.reading-queue-form input {
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--sumi);
+  font: inherit;
+  font-size: 13px;
+}
+
+.reading-queue-form input:focus {
+  border-color: var(--shusha);
+  outline: 2px solid rgba(196, 72, 65, 0.1);
+}
+
+.reading-queue-status {
+  min-height: 20px;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.reading-queue-status.ok {
+  color: #38664f;
+}
+
+.reading-queue-status.error {
+  color: var(--trap);
+}
+
+.reading-queue-list {
+  margin-top: 6px;
+}
+
+.reading-queue-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+}
+
+.reading-queue-item.is-read {
+  opacity: 0.68;
+}
+
+.reading-queue-state {
+  min-width: 42px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: #38664f;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.reading-queue-item.is-read .reading-queue-state {
+  background: #eef0ee;
+  color: var(--muted);
+}
+
+.reading-queue-copy {
+  min-width: 0;
+}
+
+.reading-queue-copy h3 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reading-queue-copy p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.reading-queue-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reading-queue-actions .btn-primary,
+.reading-queue-actions .btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 9px;
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.reading-queue-remove {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 19px;
+}
+
+.reading-queue-remove:hover {
+  background: #f7eceb;
+  color: var(--trap);
+}
+
+.reading-queue-empty {
+  padding: 18px 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.source-directory-head {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 16px;
 }
 
 .discover-sources {
@@ -3035,6 +3207,35 @@ body[data-view="discover"] .discover-section {
 
   .vocab-page-review .rate-row {
     grid-template-columns: 1fr;
+  }
+
+  .reading-queue-head {
+    align-items: flex-start;
+  }
+
+  .reading-queue-form {
+    grid-template-columns: 1fr;
+  }
+
+  .reading-queue-form .btn-primary {
+    min-height: 42px;
+    width: 100%;
+  }
+
+  .reading-queue-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .reading-queue-actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+  }
+
+  .reading-queue-actions .btn-primary,
+  .reading-queue-actions .btn-ghost {
+    min-width: 0;
+    white-space: nowrap;
   }
 
   .discover-section .card-pad {

@@ -260,6 +260,8 @@ try{ RUBY_OVERRIDES = JSON.parse(safeStorage.getItem('reading_ruby_overrides') |
 let IS_ANNOTATION_EDITING = false;
 let CURRENT_FOOTNOTES = [];
 let READING_HISTORY = [];
+let READING_QUEUE = loadReadingQueue();
+let ACTIVE_READING_QUEUE_ID = Number(safeStorage.getItem('reading_queue_active_id') || 0) || null;
 
 function practiceDateKey(){
   const now = new Date();
@@ -432,6 +434,7 @@ function isDateToday(value){
 
 function dailyTaskState(){
   const vocab = getAllVocab();
+  const unreadQueue = READING_QUEUE.filter(item => item.status !== 'read');
   const dueCount = vocab.filter(item => isDue(item)).length;
   const vocabPracticeCount = Object.values(PRACTICE_STATS.vocab).reduce((sum, count) => sum + Number(count || 0), 0);
   const exerciseCount = Number(PRACTICE_STATS.typing.count || 0) + Number(PRACTICE_STATS.cloze.count || 0);
@@ -440,9 +443,9 @@ function dailyTaskState(){
     {
       type:'reading',
       title:'阅读一篇文章',
-      detail:hasReadToday ? '今天已经完成阅读' : '导入文章并完成一次分析',
+      detail:hasReadToday ? '今天已经完成阅读' : unreadQueue.length ? `清单里还有 ${unreadQueue.length} 篇未读` : '导入文章并完成一次分析',
       done:hasReadToday,
-      action:'去阅读'
+      action:unreadQueue.length ? '读下一篇' : '去阅读'
     },
     {
       type:'vocab',
@@ -480,6 +483,11 @@ function renderDailyPlan(){
 
 function openDailyTask(type){
   if(type === 'reading'){
+    const nextUnread = READING_QUEUE.find(item => item.status !== 'read');
+    if(nextUnread){
+      openReadingQueueItem(nextUnread.id);
+      return;
+    }
     switchWorkspace('reading');
     document.getElementById('sourceComposer')?.scrollIntoView({behavior:'smooth', block:'start'});
     return;
@@ -498,6 +506,174 @@ function openDailyTask(type){
   }
   switchWorkspace('retell');
   document.querySelector('.practice-hero')?.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function loadReadingQueue(){
+  try{
+    const stored = JSON.parse(safeStorage.getItem('reading_queue') || '[]');
+    return normalizeReadingQueueItems(stored);
+  }catch{
+    return [];
+  }
+}
+
+function normalizeReadingQueueItems(items){
+  if(!Array.isArray(items)) return [];
+  const now = Date.now();
+  return items.flatMap((item, index) => {
+    const url = readingQueueUrl(item?.url);
+    if(!url) return [];
+    const storedId = Number(item?.id);
+    return [{
+      id:Number.isFinite(storedId) && storedId > 0 ? storedId : now + index,
+      title:String(item?.title || readingQueueFallbackTitle(url)).trim().slice(0, 80),
+      url,
+      status:item?.status === 'read' ? 'read' : 'unread',
+      addedAt:String(item?.addedAt || new Date().toISOString()),
+      readAt:item?.status === 'read' ? String(item?.readAt || new Date().toISOString()) : null
+    }];
+  }).slice(0, 100);
+}
+
+function saveReadingQueue(){
+  safeStorage.setItem('reading_queue', JSON.stringify(READING_QUEUE.slice(0, 100)));
+}
+
+function readingQueueUrl(value){
+  try{
+    const url = new URL(String(value || '').trim());
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+  }catch{
+    return '';
+  }
+}
+
+function readingQueueFallbackTitle(url){
+  try{
+    return new URL(url).hostname.replace(/^www\./, '');
+  }catch{
+    return '未命名文章';
+  }
+}
+
+function setReadingQueueStatus(message, type = ''){
+  const target = document.getElementById('readingQueueStatus');
+  if(!target) return;
+  target.textContent = message;
+  target.className = `reading-queue-status ${type}`.trim();
+}
+
+function addReadingQueueItem(event){
+  event?.preventDefault();
+  const titleInput = document.getElementById('readingQueueTitleInput');
+  const urlInput = document.getElementById('readingQueueUrlInput');
+  const url = readingQueueUrl(urlInput?.value);
+  if(!url){
+    setReadingQueueStatus('请输入以 http:// 或 https:// 开头的有效文章链接。', 'error');
+    urlInput?.focus();
+    return;
+  }
+  if(READING_QUEUE.some(item => item.url === url)){
+    setReadingQueueStatus('这篇文章已经在阅读清单里。', 'error');
+    return;
+  }
+  READING_QUEUE.unshift({
+    id:Date.now(),
+    title:String(titleInput?.value || '').trim() || readingQueueFallbackTitle(url),
+    url,
+    status:'unread',
+    addedAt:new Date().toISOString(),
+    readAt:null
+  });
+  saveReadingQueue();
+  if(titleInput) titleInput.value = '';
+  if(urlInput) urlInput.value = '';
+  setReadingQueueStatus('已加入阅读清单。', 'ok');
+  renderReadingQueue();
+  renderDailyPlan();
+}
+
+function renderReadingQueue(){
+  const list = document.getElementById('readingQueueList');
+  const count = document.getElementById('readingQueueCount');
+  if(!list || !count) return;
+  const sorted = [...READING_QUEUE].sort((a, b) => {
+    if(a.status !== b.status) return a.status === 'unread' ? -1 : 1;
+    return String(b.addedAt || '').localeCompare(String(a.addedAt || ''));
+  });
+  const unreadCount = sorted.filter(item => item.status !== 'read').length;
+  count.textContent = `${unreadCount} 篇未读`;
+  if(!sorted.length){
+    list.innerHTML = '<div class="reading-queue-empty">还没有保存文章。找到感兴趣的具体文章后，把链接放到这里。</div>';
+    return;
+  }
+  list.innerHTML = sorted.map(item => `
+    <article class="reading-queue-item${item.status === 'read' ? ' is-read' : ''}">
+      <span class="reading-queue-state">${item.status === 'read' ? '已读' : '未读'}</span>
+      <div class="reading-queue-copy">
+        <h3>${escapeHtml(item.title || readingQueueFallbackTitle(item.url))}</h3>
+        <p>${escapeHtml(readingQueueFallbackTitle(item.url))}</p>
+      </div>
+      <div class="reading-queue-actions">
+        ${item.status === 'read' ? '' : `<button class="btn-primary" onclick="openReadingQueueItem(${item.id})">开始阅读</button>`}
+        <a class="btn-ghost" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">打开原文</a>
+        <button class="btn-ghost" onclick="toggleReadingQueueItem(${item.id})">${item.status === 'read' ? '重新加入' : '标为已读'}</button>
+        <button class="reading-queue-remove" onclick="removeReadingQueueItem(${item.id})" title="删除" aria-label="从阅读清单删除 ${escapeHtml(item.title || '')}">×</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+function openReadingQueueItem(id){
+  const item = READING_QUEUE.find(entry => entry.id === id);
+  if(!item) return;
+  ACTIVE_READING_QUEUE_ID = item.id;
+  safeStorage.setItem('reading_queue_active_id', String(item.id));
+  const input = document.getElementById('inputText');
+  const hiddenInput = document.getElementById('articleUrlInput');
+  if(input) input.value = item.url;
+  if(hiddenInput) hiddenInput.value = item.url;
+  switchWorkspace('reading');
+  editSourceText();
+  setImportStatus(`已准备「${item.title}」。可以直接提取；若提取不可用，请打开原文并复制正文回来。`);
+}
+
+function toggleReadingQueueItem(id){
+  const item = READING_QUEUE.find(entry => entry.id === id);
+  if(!item) return;
+  item.status = item.status === 'read' ? 'unread' : 'read';
+  item.readAt = item.status === 'read' ? new Date().toISOString() : null;
+  saveReadingQueue();
+  renderReadingQueue();
+  renderDailyPlan();
+}
+
+function removeReadingQueueItem(id){
+  READING_QUEUE = READING_QUEUE.filter(item => item.id !== id);
+  if(ACTIVE_READING_QUEUE_ID === id){
+    ACTIVE_READING_QUEUE_ID = null;
+    safeStorage.removeItem('reading_queue_active_id');
+  }
+  saveReadingQueue();
+  renderReadingQueue();
+  renderDailyPlan();
+}
+
+function clearActiveReadingQueueItem(){
+  ACTIVE_READING_QUEUE_ID = null;
+  safeStorage.removeItem('reading_queue_active_id');
+}
+
+function markActiveReadingQueueRead(){
+  if(!ACTIVE_READING_QUEUE_ID) return;
+  const item = READING_QUEUE.find(entry => entry.id === ACTIVE_READING_QUEUE_ID);
+  if(item){
+    item.status = 'read';
+    item.readAt = new Date().toISOString();
+    saveReadingQueue();
+  }
+  clearActiveReadingQueueItem();
+  renderReadingQueue();
 }
 
 const READING_SOURCES = [
@@ -567,6 +743,7 @@ function initKuromoji(){
 
 async function loadSample(){
   await ensureLearningData();
+  clearActiveReadingQueueItem();
   document.getElementById('inputText').value = SAMPLE_TEXT;
   switchWorkspace('reading');
   await renderText();
@@ -617,6 +794,7 @@ function editSourceText(){
 }
 
 function openRecommendedSource(url){
+  clearActiveReadingQueueItem();
   window.open(url, '_blank', 'noopener,noreferrer');
   const input = document.getElementById('inputText');
   if(input) input.focus();
@@ -3012,11 +3190,12 @@ function exportAnkiTsv(){
 function exportLearningBackup(){
   const backup = {
     app:'dokedo-japanese-reader',
-    version:1,
+    version:2,
     exportedAt:new Date().toISOString(),
     vocab:vocabData,
     history:READING_HISTORY,
     practiceHistory:PRACTICE_HISTORY,
+    readingQueue:READING_QUEUE,
     rubyOverrides:RUBY_OVERRIDES,
     preferredVoice:safeStorage.getItem('reading_tts_voice') || '',
     workspace:safeStorage.getItem('reading_workspace') || 'reading',
@@ -3033,6 +3212,7 @@ async function importLearningBackup(file){
     if(!data || data.app !== 'dokedo-japanese-reader') throw new Error('这不是有效的读得懂备份文件。');
     vocabData = Array.isArray(data.vocab) ? data.vocab : [];
     READING_HISTORY = Array.isArray(data.history) ? data.history.slice(0, 50) : [];
+    READING_QUEUE = Array.isArray(data.readingQueue) ? normalizeReadingQueueItems(data.readingQueue) : READING_QUEUE;
     PRACTICE_HISTORY = Array.isArray(data.practiceHistory)
       ? data.practiceHistory.map(item => normalizePracticeStats(item, item.date)).slice(0, 30)
       : PRACTICE_HISTORY;
@@ -3044,11 +3224,15 @@ async function importLearningBackup(file){
     if(data.levelResult) safeStorage.setItem('reading_level_result', data.levelResult);
     await saveVocab();
     saveReadingHistory();
+    saveReadingQueue();
+    clearActiveReadingQueueItem();
     savePracticeStats();
     syncPracticeHistory();
     renderVocab();
     renderReadingHistory();
+    renderReadingQueue();
     renderPracticeSummary();
+    renderDailyPlan();
     alert('备份已恢复。');
   }catch(error){
     alert(error.message || '备份恢复失败。');
@@ -3214,12 +3398,13 @@ function saveCurrentArticleToHistory(){
   const text = CURRENT_ARTICLE_TEXT.trim();
   const output = document.getElementById('output');
   if(!text || !output) return;
+  const activeQueueItem = READING_QUEUE.find(entry => entry.id === ACTIVE_READING_QUEUE_ID);
   const compact = text.replace(/\s+/g, '');
   const existingIndex = READING_HISTORY.findIndex(item => item.fingerprint === compact.slice(0, 180));
   const item = {
     id: Date.now(),
     title: articleTitleFromText(text),
-    source:'手动导入',
+    source:activeQueueItem?.title || '手动导入',
     date:new Date().toISOString(),
     chars:text.length,
     text,
@@ -3230,6 +3415,7 @@ function saveCurrentArticleToHistory(){
   READING_HISTORY.unshift(item);
   READING_HISTORY = READING_HISTORY.slice(0, 50);
   saveReadingHistory();
+  markActiveReadingQueueRead();
   renderDailyPlan();
 }
 
@@ -3287,6 +3473,7 @@ function clearReadingHistory(){
 }
 
 function renderSourceDirectory(){
+  renderReadingQueue();
   const target = document.getElementById('sourceDirectory');
   if(!target) return;
   const recommended = (safeStorage.getItem('reading_level_result') || '').split('｜')[0] || '';
@@ -3306,6 +3493,7 @@ function renderSourceDirectory(){
 }
 
 function useSourceUrl(encodedUrl){
+  clearActiveReadingQueueItem();
   const url = decodeURIComponent(encodedUrl);
   document.getElementById('inputText').value = url;
   switchWorkspace('reading');

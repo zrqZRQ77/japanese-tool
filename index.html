@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260629-24">
+<link rel="stylesheet" href="styles.css?v=20260629-25">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -384,7 +384,26 @@
     <div class="card discover-section">
       <div class="card-pad">
         <div class="card-head"><span class="card-title"><span class="tag">来源</span>找阅读材料</span></div>
-        <div class="lookup-status" style="margin-bottom:12px;">可以按等级挑一个来源，把链接带回阅读页试读。</div>
+        <section class="reading-queue-section" aria-labelledby="readingQueueTitle">
+          <div class="reading-queue-head">
+            <div>
+              <h2 id="readingQueueTitle">阅读清单</h2>
+              <p>保存具体文章链接，之后按未读顺序继续。</p>
+            </div>
+            <span class="reading-queue-count" id="readingQueueCount">0 篇未读</span>
+          </div>
+          <form class="reading-queue-form" onsubmit="addReadingQueueItem(event)">
+            <input id="readingQueueTitleInput" type="text" maxlength="80" placeholder="文章标题（可选）" aria-label="文章标题">
+            <input id="readingQueueUrlInput" type="url" required placeholder="粘贴具体文章链接" aria-label="文章链接">
+            <button class="btn-primary" type="submit">加入清单</button>
+          </form>
+          <div class="reading-queue-status" id="readingQueueStatus" aria-live="polite"></div>
+          <div class="reading-queue-list" id="readingQueueList"></div>
+        </section>
+        <div class="source-directory-head">
+          <h2>按等级找来源</h2>
+          <p>先打开网站选择一篇具体文章，再把文章链接加入上面的清单。</p>
+        </div>
         <div class="discover-sources" id="sourceDirectory"></div>
       </div>
     </div>
@@ -590,6 +609,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260629-24"></script>
+<script src="app.js?v=20260629-25"></script>
 </body>
 </html>
