@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>読める · 日语阅读辅助工具 - 自动标注假名释义</title>
-<meta name="description" content="日语阅读辅助工具，自动标注假名和释义，支持文本和TXT导入，JLPT词汇分级，一键导出Anki，间隔复习系统">
+<title>読める · 日语阅读辅助工具 · 自动标注假名与释义</title>
+<meta name="description" content="粘贴日语文章，自动标注假名和释义，JLPT词汇分级，一键导出Anki牌组，间隔复习系统">
 <meta name="keywords" content="日语学习,日语阅读,JLPT,N5,N4,N3,N2,N1,假名标注,Anki,间隔复习">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,19 +21,19 @@
   <!-- Hero 首屏 -->
   <div class="hero-intro" id="heroIntro">
     <div class="hero-brand">
-      <h1 class="hero-title">日语阅读辅助工具</h1>
-      <p class="hero-subtitle">粘贴日语文章，自动整理假名、释义和生词。</p>
+      <h1 class="hero-title">読める · 日语阅读辅助</h1>
+      <p class="hero-subtitle">粘贴日语文章，自动标注假名、释义与生词。</p>
     </div>
 
     <div class="hero-input">
       <textarea id="heroInputText" placeholder="粘贴日语文本或文章链接"></textarea>
       <div class="hero-actions">
-        <button class="btn-primary-large" onclick="analyzeFromHero()">
+        <button class="btn-primary btn--large" onclick="analyzeFromHero()">
           开始阅读
         </button>
         <div class="hero-secondary-actions">
-          <button class="btn-text hero-text-action" onclick="loadSampleFromHero()">没有文章？使用示例</button>
-          <button class="btn-text hero-text-action" onclick="document.getElementById('heroFileInput').click()">上传文件</button>
+          <button class="btn-secondary btn--text hero-text-action" onclick="loadSampleFromHero()">没有文章？使用示例</button>
+          <button class="btn-secondary btn--text hero-text-action" onclick="document.getElementById('heroFileInput').click()">上传文件</button>
         </div>
       </div>
       <input id="heroFileInput" type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" hidden onchange="extractUploadedFile(this.files[0])">
@@ -95,7 +95,7 @@
                 <span class="module-kicker">学习路径</span>
                 <h3 id="learningPathTitle">阅读 → 收藏生词 → 练习 → 找下一篇</h3>
               </div>
-              <button class="btn-ghost daily-goal-toggle" type="button" onclick="toggleLearningGoalSettings()">调整目标</button>
+              <button class="btn-secondary daily-goal-toggle" type="button" onclick="toggleLearningGoalSettings()">调整目标</button>
             </div>
             <form class="daily-goal-settings is-hidden" id="dailyGoalSettings" onsubmit="saveLearningGoals(event)">
               <label>阅读
@@ -128,8 +128,8 @@
           <!-- 状态条 -->
           <div class="status-bar" id="statusBar" style="display:none;">
             <span>✓ 已分析</span>
-            <button class="btn-text" onclick="editSourceText()">更换文章</button>
-            <button class="btn-text" onclick="openExportModal()">导出</button>
+            <button class="btn-secondary btn--text" onclick="editSourceText()">更换文章</button>
+            <button class="btn-secondary btn--text" onclick="openExportModal()">导出</button>
           </div>
 
           <!-- 输入区域 -->
@@ -138,8 +138,8 @@
               <textarea id="inputText" placeholder="粘贴日语原文，或粘贴一篇日语文章链接；TXT 可直接上传，PDF / Word 需要解析服务。"></textarea>
               <div class="source-actions">
                 <button class="btn-primary" onclick="analyzeSourceInput()">开始阅读</button>
-                <button class="btn-ghost" type="button" onclick="document.getElementById('documentFileInput').click()">上传文件</button>
-                <button class="btn-ghost" onclick="loadSample()">用示例开始</button>
+                <button class="btn-secondary" type="button" onclick="document.getElementById('documentFileInput').click()">上传文件</button>
+                <button class="btn-secondary" onclick="loadSample()">用示例开始</button>
               </div>
               <input id="articleUrlInput" type="hidden">
               <input id="documentFileInput" type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" hidden onchange="extractUploadedFile(this.files[0])">
@@ -234,9 +234,9 @@
             <details class="mini-disclosure">
               <summary>管理生词</summary>
               <div class="mini-action-row">
-                <button class="btn-ghost" onclick="exportVocabCsv()">导出CSV</button>
-                <button class="btn-ghost" onclick="exportAnkiTsv()">导出Anki</button>
-                <button class="btn-ghost danger-action" onclick="clearAllVocab()">清空</button>
+                <button class="btn-secondary" onclick="exportVocabCsv()">导出CSV</button>
+                <button class="btn-secondary" onclick="exportAnkiTsv()">导出Anki</button>
+                <button class="btn-secondary danger-action" onclick="clearAllVocab()">清空</button>
               </div>
             </details>
           </div>
@@ -266,9 +266,9 @@
         <details class="progressive-panel">
           <summary>导出与管理</summary>
           <div class="vocab-page-actions">
-            <button class="btn-ghost" onclick="exportVocabCsv()">导出CSV</button>
-            <button class="btn-ghost" onclick="exportAnkiTsv()">导出Anki</button>
-            <button class="btn-ghost danger-action" onclick="clearAllVocab()">清空</button>
+            <button class="btn-secondary" onclick="exportVocabCsv()">导出CSV</button>
+            <button class="btn-secondary" onclick="exportAnkiTsv()">导出Anki</button>
+            <button class="btn-secondary danger-action" onclick="clearAllVocab()">清空</button>
           </div>
         </details>
         <div class="export-inline-status" id="vocabExportStatusPage" aria-live="polite"></div>
@@ -293,7 +293,7 @@
           <section class="vocab-page-review">
             <p class="review-copy">阅读中收藏的词会沉淀到这里；积累后可以按间隔重复复习。</p>
             <div class="review-actions">
-              <button class="btn-ghost" onclick="reviewAllVocab()">全部复习</button>
+              <button class="btn-secondary" onclick="reviewAllVocab()">全部复习</button>
               <button class="btn-primary" id="startReviewBtn" onclick="startReview()">复习到期词</button>
             </div>
             <div id="flashArea" class="flash-page-placeholder">先积累几个生词，再开始复习。</div>
@@ -341,8 +341,8 @@
         </section>
         <div class="practice-start-row">
           <button class="btn-primary" id="startArticlePracticeBtn" onclick="focusPracticeModule('article')">开始文章理解</button>
-          <button class="btn-ghost" id="startVocabPracticeBtn" onclick="focusPracticeModule('vocab')">练生词</button>
-          <button class="btn-ghost" id="startTypingPracticeBtn" onclick="focusPracticeModule('typing')">练基础句型</button>
+          <button class="btn-secondary" id="startVocabPracticeBtn" onclick="focusPracticeModule('vocab')">练生词</button>
+          <button class="btn-secondary" id="startTypingPracticeBtn" onclick="focusPracticeModule('typing')">练基础句型</button>
         </div>
         <details class="progressive-panel practice-secondary-panel">
           <summary>今日练习总结</summary>
@@ -356,7 +356,7 @@
                 <span class="module-kicker">错题回看</span>
                 <h3 id="practiceReviewTitle">最近需要补的地方</h3>
               </div>
-              <button class="btn-ghost" type="button" onclick="clearPracticeReview()">清空已完成</button>
+              <button class="btn-secondary" type="button" onclick="clearPracticeReview()">清空已完成</button>
             </div>
             <div class="practice-review-list" id="practiceReviewList"></div>
           </section>
@@ -386,8 +386,8 @@
                 <div class="section-header"><span class="section-title">挖空自测</span></div>
                 <div class="btnrow">
                   <button class="btn-primary" onclick="generateCloze()">生成挖空测试</button>
-                  <button class="btn-ghost" onclick="checkCloze()">检查答案</button>
-                  <button class="btn-ghost" onclick="revealCloze()">显示答案</button>
+                  <button class="btn-secondary" onclick="checkCloze()">检查答案</button>
+                  <button class="btn-secondary" onclick="revealCloze()">显示答案</button>
                 </div>
                 <div class="reading-output cloze-output" id="clozeOutput">
                   <span style="color:var(--ink-soft);font-size:14.5px;">点击「生成挖空测试」，会把刚才读过的文章里的生词挖空。</span>
@@ -397,7 +397,7 @@
               <section class="practice-subpanel article-practice-panel" data-article-practice="retell">
                 <div class="section-header"><span class="section-title">复述</span></div>
                 <div class="btnrow">
-                  <button class="btn-ghost" onclick="speakOriginalForRetell()">朗读原文</button>
+                  <button class="btn-secondary" onclick="speakOriginalForRetell()">朗读原文</button>
                   <button class="btn-primary" id="retellRecordBtn" onclick="toggleRetellRecording()">开始录音复述</button>
                 </div>
                 <div class="typing-result" id="retellResult"></div>
@@ -422,12 +422,12 @@
           <div class="vocab-practice-body" id="vocabPracticeBody">
             <div class="vocab-quiz-card" id="vocabQuizCard"></div>
             <div class="btnrow">
-              <button class="btn-ghost" onclick="prevVocabPractice()">上一词</button>
+              <button class="btn-secondary" onclick="prevVocabPractice()">上一词</button>
               <button class="btn-primary" onclick="toggleVocabPracticeAnswer()">显示释义</button>
-              <button class="btn-ghost" onclick="rateVocabPractice('again')">不认识</button>
-              <button class="btn-ghost" onclick="rateVocabPractice('hard')">模糊</button>
-              <button class="btn-ghost" onclick="rateVocabPractice('easy')">认识</button>
-              <button class="btn-ghost" onclick="nextVocabPractice()">下一词</button>
+              <button class="btn-secondary" onclick="rateVocabPractice('again')">不认识</button>
+              <button class="btn-secondary" onclick="rateVocabPractice('hard')">模糊</button>
+              <button class="btn-secondary" onclick="rateVocabPractice('easy')">认识</button>
+              <button class="btn-secondary" onclick="nextVocabPractice()">下一词</button>
             </div>
             <div class="typing-score" id="vocabPracticeResult"></div>
           </div>
@@ -452,9 +452,9 @@
               <textarea class="typing-input" id="typingInput" placeholder="在这里输入日语答案……" oninput="clearTypingResult()"></textarea>
               <div class="btnrow">
                 <button class="btn-primary" onclick="checkTypingAnswer()">检查</button>
-                <button class="btn-ghost" onclick="speakCurrentTypingAnswer()">朗读答案</button>
-                <button class="btn-ghost" onclick="showTypingAnswer()">显示答案</button>
-                <button class="btn-ghost" onclick="nextTypingPrompt()">下一题</button>
+                <button class="btn-secondary" onclick="speakCurrentTypingAnswer()">朗读答案</button>
+                <button class="btn-secondary" onclick="showTypingAnswer()">显示答案</button>
+                <button class="btn-secondary" onclick="nextTypingPrompt()">下一题</button>
               </div>
               <div class="typing-result" id="typingResult"></div>
             </div>
@@ -522,7 +522,7 @@
           <span class="status-value" id="levelResultBadge">未测试</span>
         </div>
         <div class="test-actions">
-          <button class="btn-ghost" onclick="resetLevelTest()">重新测试</button>
+          <button class="btn-secondary" onclick="resetLevelTest()">重新测试</button>
         </div>
         <div class="lookup-status" id="levelResult">完成后会推荐适合你的阅读等级，并在「找材料」里高亮相近来源。</div>
         <div id="levelTest"></div>
@@ -548,8 +548,8 @@
         <details class="progressive-panel">
           <summary>备份与恢复</summary>
           <div class="history-toolbar">
-            <button class="btn-ghost" onclick="backupData()">备份数据</button>
-            <button class="btn-ghost" onclick="restoreData()">恢复备份</button>
+            <button class="btn-secondary" onclick="backupData()">备份数据</button>
+            <button class="btn-secondary" onclick="restoreData()">恢复备份</button>
             <input id="backupFileInput" type="file" accept="application/json,.json" hidden onchange="importLearningBackup(this.files[0])">
           </div>
         </details>
@@ -561,7 +561,7 @@
                 <h2 id="weeklyProgressTitle">学习趋势</h2>
                 <p>阅读之外，也看看练习有没有慢慢积累起来。</p>
               </div>
-              <button class="btn-ghost" onclick="switchWorkspace('retell')">继续练习</button>
+              <button class="btn-secondary" onclick="switchWorkspace('retell')">继续练习</button>
             </div>
             <div class="weekly-progress-summary" id="weeklyProgressSummary"></div>
             <div class="weekly-practice-chart" id="weeklyPracticeChart" aria-label="最近 7 天练习次数"></div>
@@ -572,7 +572,7 @@
             <h2>最近读过的文章</h2>
             <p>重新打开文章时，会恢复当时的标注结果。</p>
           </div>
-          <button class="btn-ghost danger-action" onclick="clearHistory()">清空历史</button>
+          <button class="btn-secondary danger-action" onclick="clearHistory()">清空历史</button>
         </div>
         <div class="history-list" id="historyList"></div>
       </div>
@@ -611,8 +611,8 @@
       <div class="section-header">
         <span class="section-title">已收藏 <b id="vocabCountPanel">0</b> 个</span>
         <div style="display:flex;gap:6px;">
-          <button class="btn-ghost-small" onclick="exportVocabCsv()">导出CSV</button>
-          <button class="btn-ghost-small" onclick="exportAnkiTsv()">导出Anki</button>
+          <button class="btn-secondary btn--small" onclick="exportVocabCsv()">导出CSV</button>
+          <button class="btn-secondary btn--small" onclick="exportAnkiTsv()">导出Anki</button>
         </div>
       </div>
       <div class="export-inline-status" id="vocabExportStatusPanel"></div>
@@ -628,7 +628,7 @@
         生词本 <b id="totalVocabCountPanel">0</b> 个 · 到期 <b id="dueCountPanel">0</b> 个
       </div>
       <div class="review-actions" style="margin-top:12px;">
-        <button class="btn-ghost" onclick="reviewAllVocab();closeVocabPanel()">全部复习</button>
+        <button class="btn-secondary" onclick="reviewAllVocab();closeVocabPanel()">全部复习</button>
         <button class="btn-primary" onclick="startReview();closeVocabPanel()">复习到期词</button>
       </div>
     </div>
@@ -638,7 +638,7 @@
 <!-- TTS控制条 -->
 <div class="tts-control-bar" id="ttsControlBar" aria-live="polite">
   <span>🔊 朗读中……</span>
-  <button class="btn-ghost" type="button" id="ttsPauseBtn" onclick="toggleTtsPause()">暂停</button>
+  <button class="btn-secondary" type="button" id="ttsPauseBtn" onclick="toggleTtsPause()">暂停</button>
   <button class="btn-primary" type="button" onclick="stopTts()">停止</button>
 </div>
 
@@ -647,8 +647,8 @@
   <div class="selection-text" id="selectionText"></div>
   <div class="selection-actions">
     <button class="btn-primary" type="button" onclick="lookupSelectedText()">翻译/释义</button>
-    <button class="btn-ghost" type="button" onclick="saveSelectedTextToVocab()">加入生词本</button>
-    <button class="btn-ghost" type="button" onclick="speakSelectedText()">朗读</button>
+    <button class="btn-secondary" type="button" onclick="saveSelectedTextToVocab()">加入生词本</button>
+    <button class="btn-secondary" type="button" onclick="speakSelectedText()">朗读</button>
   </div>
   <div class="selection-result" id="selectionResult">选中词、短语或句子后可以查询。</div>
 </div>
@@ -658,7 +658,7 @@
   <div class="export-dialog">
     <div class="export-head">
       <strong id="exportTitle">导出阅读文本</strong>
-      <button class="icon-btn" type="button" onclick="closeExportModal()" aria-label="关闭导出面板">×</button>
+      <button class="btn-icon" type="button" onclick="closeExportModal()" aria-label="关闭导出面板">×</button>
     </div>
     <div class="export-body">
       <div class="export-selects">
@@ -696,7 +696,7 @@
     </div>
     <div class="export-actions">
       <span class="export-status" id="exportStatus" aria-live="polite"></span>
-      <button class="btn-ghost" type="button" onclick="closeExportModal()">取消</button>
+      <button class="btn-secondary" type="button" onclick="closeExportModal()">取消</button>
       <button class="btn-primary" id="exportDownloadBtn" type="button" onclick="runExport()">下载</button>
     </div>
   </div>
@@ -707,20 +707,20 @@
   <div class="export-dialog">
     <div class="export-head">
       <strong id="importPreviewTitle">检查导入正文</strong>
-      <button class="icon-btn" type="button" onclick="closeImportPreview()" aria-label="关闭导入预览">×</button>
+      <button class="btn-icon" type="button" onclick="closeImportPreview()" aria-label="关闭导入预览">×</button>
     </div>
     <div class="export-body">
       <div class="import-preview-summary" id="importPreviewSummary"></div>
       <div class="clean-actions">
-        <button class="btn-ghost" type="button" onclick="cleanImportText('article')">只保留正文</button>
-        <button class="btn-ghost" type="button" onclick="cleanImportText('blank')">合并多余空行</button>
-        <button class="btn-ghost" type="button" onclick="cleanImportText('spaces')">整理空格</button>
-        <button class="btn-ghost" type="button" onclick="cleanImportText('edges')">删除首尾短行</button>
+        <button class="btn-secondary" type="button" onclick="cleanImportText('article')">只保留正文</button>
+        <button class="btn-secondary" type="button" onclick="cleanImportText('blank')">合并多余空行</button>
+        <button class="btn-secondary" type="button" onclick="cleanImportText('spaces')">整理空格</button>
+        <button class="btn-secondary" type="button" onclick="cleanImportText('edges')">删除首尾短行</button>
       </div>
       <textarea id="importPreviewText" style="min-height:340px" aria-label="导入正文预览"></textarea>
     </div>
     <div class="export-actions">
-      <button class="btn-ghost" type="button" onclick="closeImportPreview()">取消</button>
+      <button class="btn-secondary" type="button" onclick="closeImportPreview()">取消</button>
       <button class="btn-primary" type="button" onclick="confirmImportPreview()">使用这段正文</button>
     </div>
   </div>
