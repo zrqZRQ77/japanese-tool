@@ -263,6 +263,7 @@ let READING_HISTORY = [];
 let READING_QUEUE = loadReadingQueue();
 let ACTIVE_READING_QUEUE_ID = Number(safeStorage.getItem('reading_queue_active_id') || 0) || null;
 let LEARNING_GOALS = loadLearningGoals();
+let PRACTICE_REVIEW = loadPracticeReview();
 
 function practiceDateKey(){
   const now = new Date();
@@ -352,8 +353,158 @@ function recordPracticeResult(type, payload = {}){
   savePracticeStats();
   syncPracticeHistory();
   renderPracticeSummary();
+  renderPracticeReview();
   renderLearningProgress();
   renderDailyPlan();
+}
+
+function loadPracticeReview(){
+  try{
+    const stored = JSON.parse(safeStorage.getItem('reading_practice_review') || '[]');
+    if(!Array.isArray(stored)) return [];
+    return stored
+      .filter(item => item && item.id && item.type && item.title)
+      .map(item => ({
+        id:String(item.id),
+        key:String(item.key || item.id),
+        type:String(item.type),
+        title:String(item.title),
+        prompt:String(item.prompt || ''),
+        answer:String(item.answer || ''),
+        note:String(item.note || ''),
+        createdAt:Number(item.createdAt || Date.now()),
+        lastSeenAt:Number(item.lastSeenAt || item.createdAt || Date.now()),
+        count:Math.max(1, Number(item.count || 1)),
+        status:item.status === 'done' ? 'done' : 'active',
+        target:Number.isFinite(Number(item.target)) ? Number(item.target) : null
+      }))
+      .sort((a, b) => b.lastSeenAt - a.lastSeenAt)
+      .slice(0, 30);
+  }catch{
+    return [];
+  }
+}
+
+function savePracticeReview(){
+  safeStorage.setItem('reading_practice_review', JSON.stringify(PRACTICE_REVIEW.slice(0, 30)));
+}
+
+function addPracticeReviewItem(item){
+  const now = Date.now();
+  const key = String(item.key || `${item.type}:${item.title}`);
+  const existing = PRACTICE_REVIEW.find(entry => entry.key === key);
+  if(existing){
+    existing.title = String(item.title || existing.title);
+    existing.prompt = String(item.prompt || existing.prompt || '');
+    existing.answer = String(item.answer || existing.answer || '');
+    existing.note = String(item.note || existing.note || '');
+    existing.target = Number.isFinite(Number(item.target)) ? Number(item.target) : existing.target;
+    existing.count = Math.max(1, Number(existing.count || 1) + 1);
+    existing.lastSeenAt = now;
+    existing.status = 'active';
+  } else {
+    PRACTICE_REVIEW.unshift({
+      id:`${now}-${Math.random().toString(36).slice(2, 8)}`,
+      key,
+      type:String(item.type || 'practice'),
+      title:String(item.title || '需要回看'),
+      prompt:String(item.prompt || ''),
+      answer:String(item.answer || ''),
+      note:String(item.note || ''),
+      createdAt:now,
+      lastSeenAt:now,
+      count:1,
+      status:'active',
+      target:Number.isFinite(Number(item.target)) ? Number(item.target) : null
+    });
+  }
+  PRACTICE_REVIEW = PRACTICE_REVIEW
+    .sort((a, b) => b.lastSeenAt - a.lastSeenAt)
+    .slice(0, 30);
+  savePracticeReview();
+  renderPracticeReview();
+}
+
+function resolvePracticeReview(key){
+  const item = PRACTICE_REVIEW.find(entry => entry.key === key);
+  if(!item || item.status === 'done') return;
+  item.status = 'done';
+  savePracticeReview();
+  renderPracticeReview();
+}
+
+function clearPracticeReview(){
+  PRACTICE_REVIEW = PRACTICE_REVIEW.filter(item => item.status !== 'done');
+  savePracticeReview();
+  renderPracticeReview();
+}
+
+function practiceReviewTypeLabel(type){
+  return {
+    vocab:'生词',
+    typing:'打字',
+    cloze:'挖空'
+  }[type] || '练习';
+}
+
+function renderPracticeReview(){
+  const list = document.getElementById('practiceReviewList');
+  if(!list) return;
+  const active = PRACTICE_REVIEW.filter(item => item.status !== 'done').slice(0, 6);
+  if(!active.length){
+    list.innerHTML = '<div class="practice-review-empty">还没有错题。做练习时，不认识的生词、打字失误和挖空错空会自动出现在这里。</div>';
+    return;
+  }
+  list.innerHTML = active.map(item => `
+    <article class="practice-review-item">
+      <div>
+        <div class="practice-review-meta">
+          <span>${practiceReviewTypeLabel(item.type)}</span>
+          <span>出现 ${item.count} 次</span>
+        </div>
+        <h4>${escapeHtml(item.title)}</h4>
+        ${item.prompt ? `<p>${escapeHtml(item.prompt)}</p>` : ''}
+        ${item.answer ? `<small>参考：${escapeHtml(item.answer)}</small>` : ''}
+        ${item.note ? `<small>${escapeHtml(item.note)}</small>` : ''}
+      </div>
+      <div class="practice-review-actions">
+        <button class="btn-primary" type="button" onclick="openPracticeReviewItem('${encodeURIComponent(item.id)}')">去补</button>
+        <button class="btn-ghost" type="button" onclick="markPracticeReviewDone('${encodeURIComponent(item.id)}')">已掌握</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+function findPracticeReviewItem(encodedId){
+  const id = decodeURIComponent(encodedId || '');
+  return PRACTICE_REVIEW.find(item => item.id === id);
+}
+
+function openPracticeReviewItem(encodedId){
+  const item = findPracticeReviewItem(encodedId);
+  if(!item) return;
+  if(item.type === 'vocab'){
+    focusPracticeModule('vocab');
+    return;
+  }
+  if(item.type === 'typing'){
+    if(Number.isInteger(item.target) && TYPING_PROMPTS[item.target]) currentTypingIndex = item.target;
+    switchWorkspace('retell');
+    renderTypingPractice();
+    document.getElementById('typingPracticeModule')?.scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+  switchWorkspace('retell');
+  setArticlePracticeMode('cloze');
+  document.getElementById('articlePracticeModule')?.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function markPracticeReviewDone(encodedId){
+  const item = findPracticeReviewItem(encodedId);
+  if(!item) return;
+  item.status = 'done';
+  savePracticeReview();
+  renderPracticeReview();
 }
 
 function renderPracticeSummary(){
@@ -919,6 +1070,7 @@ function switchWorkspace(view){
     renderTypingPractice();
     renderVocabPractice();
     renderPracticeSummary();
+    renderPracticeReview();
   }
   if(view === 'discover') renderSourceDirectory();
   if(view === 'history') renderReadingHistory();
@@ -2666,6 +2818,20 @@ function checkTypingAnswer(){
     <div class="typing-answer">参考答案: ${escapeHtml(prompt.ja)}</div>
   `;
   recordPracticeResult('typing', { score });
+  const reviewKey = `typing:${prompt.ja}`;
+  if(score < 100){
+    addPracticeReviewItem({
+      key:reviewKey,
+      type:'typing',
+      title:prompt.grammar || '基础句型打字',
+      prompt:prompt.cn || '',
+      answer:prompt.ja || '',
+      note:`最近正确率 ${score}%`,
+      target:currentTypingIndex
+    });
+  } else {
+    resolvePracticeReview(reviewKey);
+  }
 }
 
 function compareTypingText(actual, expected){
@@ -2870,6 +3036,19 @@ function rateVocabPractice(rating){
     renderVocab();
   }
   recordPracticeResult('vocab', { rating });
+  const reviewKey = `vocab:${item.word}`;
+  if(rating === 'again' || rating === 'hard'){
+    addPracticeReviewItem({
+      key:reviewKey,
+      type:'vocab',
+      title:item.word,
+      prompt:item.reading || '',
+      answer:item.meaning || '',
+      note:rating === 'again' ? '刚才标记为不认识' : '刚才标记为模糊'
+    });
+  } else {
+    resolvePracticeReview(reviewKey);
+  }
   const result = document.getElementById('vocabPracticeResult');
   if(result){
     const label = rating === 'again' ? '不认识' : rating === 'hard' ? '模糊' : '认识';
@@ -2934,6 +3113,7 @@ function generateCloze(){
 function checkCloze(){
   if(!CLOZE_ITEMS.length) return;
   let correct = 0;
+  const wrongItems = [];
   CLOZE_ITEMS.forEach(item=>{
     const input = document.querySelector(`[data-cloze-id="${item.id}"]`);
     if(!input) return;
@@ -2943,9 +3123,23 @@ function checkCloze(){
     input.style.background = ok ? 'var(--n5-bg)' : 'var(--trap-bg)';
     input.title = ok ? '正确' : `正确答案：${item.word}（${item.reading}）`;
     if(ok) correct += 1;
+    else wrongItems.push(item);
   });
   document.getElementById('clozeScore').textContent = `正确 ${correct} / ${CLOZE_ITEMS.length} —— 没填对的空格鼠标悬停可以看正确答案`;
   recordPracticeResult('cloze', { correct, total: CLOZE_ITEMS.length });
+  wrongItems.forEach(item=>{
+    addPracticeReviewItem({
+      key:`cloze:${item.word}`,
+      type:'cloze',
+      title:item.word,
+      prompt:'文章挖空里没有填对',
+      answer:item.reading ? `${item.word}（${item.reading}）` : item.word,
+      note:'回到文章理解再练一次'
+    });
+  });
+  if(!wrongItems.length){
+    CLOZE_ITEMS.forEach(item=>resolvePracticeReview(`cloze:${item.word}`));
+  }
 }
 
 function revealCloze(){
@@ -3288,6 +3482,7 @@ function exportLearningBackup(){
     practiceHistory:PRACTICE_HISTORY,
     readingQueue:READING_QUEUE,
     learningGoals:LEARNING_GOALS,
+    practiceReview:PRACTICE_REVIEW,
     rubyOverrides:RUBY_OVERRIDES,
     preferredVoice:safeStorage.getItem('reading_tts_voice') || '',
     workspace:safeStorage.getItem('reading_workspace') || 'reading',
@@ -3306,6 +3501,10 @@ async function importLearningBackup(file){
     READING_HISTORY = Array.isArray(data.history) ? data.history.slice(0, 50) : [];
     READING_QUEUE = Array.isArray(data.readingQueue) ? normalizeReadingQueueItems(data.readingQueue) : READING_QUEUE;
     LEARNING_GOALS = data.learningGoals ? normalizeLearningGoals(data.learningGoals) : LEARNING_GOALS;
+    if(Array.isArray(data.practiceReview)){
+      safeStorage.setItem('reading_practice_review', JSON.stringify(data.practiceReview));
+      PRACTICE_REVIEW = loadPracticeReview();
+    }
     PRACTICE_HISTORY = Array.isArray(data.practiceHistory)
       ? data.practiceHistory.map(item => normalizePracticeStats(item, item.date)).slice(0, 30)
       : PRACTICE_HISTORY;
@@ -3319,6 +3518,7 @@ async function importLearningBackup(file){
     saveReadingHistory();
     saveReadingQueue();
     safeStorage.setItem('reading_learning_goals', JSON.stringify(LEARNING_GOALS));
+    savePracticeReview();
     clearActiveReadingQueueItem();
     savePracticeStats();
     syncPracticeHistory();
@@ -3326,6 +3526,7 @@ async function importLearningBackup(file){
     renderReadingHistory();
     renderReadingQueue();
     renderPracticeSummary();
+    renderPracticeReview();
     renderDailyPlan();
     alert('备份已恢复。');
   }catch(error){
@@ -3732,6 +3933,7 @@ async function initializeApp(){
   renderGrammar();
   renderSourceDirectory();
   renderPracticeSummary();
+  renderPracticeReview();
   renderDailyPlan();
   const savedLevelResult = safeStorage.getItem('reading_level_result');
   if(savedLevelResult) showLevelResult(savedLevelResult);

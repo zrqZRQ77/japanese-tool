@@ -1896,6 +1896,98 @@ body.has-reading .article-practice-body {
   font-weight: 650;
 }
 
+.practice-review-panel {
+  margin: 14px 0 4px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfbf8;
+}
+
+.practice-review-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.practice-review-head h3 {
+  margin: 2px 0 0;
+  font-size: 17px;
+  letter-spacing: 0;
+}
+
+.practice-review-list {
+  display: grid;
+  gap: 10px;
+}
+
+.practice-review-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.practice-review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.practice-review-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.practice-review-item h4 {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+.practice-review-item p,
+.practice-review-item small {
+  display: block;
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.practice-review-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.practice-review-actions button {
+  white-space: nowrap;
+}
+
+.practice-review-empty {
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
 .unlock-pill,
 .module-lock {
   display: inline-flex;
@@ -2984,6 +3076,16 @@ body[data-view="discover"] .discover-section {
   .vocab-page-summary,
   .practice-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .practice-review-head,
+  .practice-review-item {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .practice-review-actions {
+    justify-content: flex-start;
   }
 
   .source-directory-item {
