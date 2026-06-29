@@ -164,6 +164,7 @@ function syncVocabPanelData() {
   });
   refreshPracticeStatus();
   renderVocabPractice();
+  renderDailyPlan();
 }
 
 // ===== 菜单面板逻辑 =====
@@ -349,6 +350,7 @@ function recordPracticeResult(type, payload = {}){
   syncPracticeHistory();
   renderPracticeSummary();
   renderLearningProgress();
+  renderDailyPlan();
 }
 
 function renderPracticeSummary(){
@@ -417,6 +419,85 @@ function renderLearningProgress(){
       <span class="weekly-practice-label">${label}</span>
     </div>`;
   }).join('');
+}
+
+function isDateToday(value){
+  const date = new Date(value);
+  const today = new Date();
+  if(Number.isNaN(date.getTime())) return false;
+  return date.getFullYear() === today.getFullYear()
+    && date.getMonth() === today.getMonth()
+    && date.getDate() === today.getDate();
+}
+
+function dailyTaskState(){
+  const vocab = getAllVocab();
+  const dueCount = vocab.filter(item => isDue(item)).length;
+  const vocabPracticeCount = Object.values(PRACTICE_STATS.vocab).reduce((sum, count) => sum + Number(count || 0), 0);
+  const exerciseCount = Number(PRACTICE_STATS.typing.count || 0) + Number(PRACTICE_STATS.cloze.count || 0);
+  const hasReadToday = READING_HISTORY.some(item => isDateToday(item.date));
+  return [
+    {
+      type:'reading',
+      title:'阅读一篇文章',
+      detail:hasReadToday ? '今天已经完成阅读' : '导入文章并完成一次分析',
+      done:hasReadToday,
+      action:'去阅读'
+    },
+    {
+      type:'vocab',
+      title:'复习到期生词',
+      detail:!vocab.length ? '先从阅读中收藏生词' : dueCount ? `${dueCount} 个词等待复习` : vocabPracticeCount ? '今日到期词已复习' : '今天没有到期词',
+      done:vocab.length > 0 && dueCount === 0,
+      action:!vocab.length ? '去收藏' : dueCount ? '去复习' : '再练一组'
+    },
+    {
+      type:'practice',
+      title:'完成一次练习',
+      detail:exerciseCount ? '今天已经完成练习' : '文章理解或基础句型任选一种',
+      done:exerciseCount > 0,
+      action:'去练习'
+    }
+  ];
+}
+
+function renderDailyPlan(){
+  const list = document.getElementById('dailyTaskList');
+  const progress = document.getElementById('dailyPlanProgress');
+  if(!list || !progress) return;
+  const tasks = dailyTaskState();
+  const completed = tasks.filter(task => task.done).length;
+  progress.textContent = `${completed} / ${tasks.length}`;
+  progress.classList.toggle('is-complete', completed === tasks.length);
+  list.innerHTML = tasks.map((task, index) => `
+    <button class="daily-task${task.done ? ' is-done' : ''}" type="button" onclick="openDailyTask('${task.type}')">
+      <span class="daily-task-status" aria-hidden="true">${task.done ? '✓' : index + 1}</span>
+      <span class="daily-task-copy"><b>${task.title}</b><small>${task.detail}</small></span>
+      <span class="daily-task-action">${task.done ? '已完成' : task.action}</span>
+    </button>
+  `).join('');
+}
+
+function openDailyTask(type){
+  if(type === 'reading'){
+    switchWorkspace('reading');
+    document.getElementById('sourceComposer')?.scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+  if(type === 'vocab'){
+    const vocab = getAllVocab();
+    if(!vocab.length){
+      switchWorkspace('reading');
+      document.getElementById('output')?.scrollIntoView({behavior:'smooth', block:'start'});
+    } else if(vocab.some(item => isDue(item))){
+      startReview();
+    } else {
+      reviewAllVocab();
+    }
+    return;
+  }
+  switchWorkspace('retell');
+  document.querySelector('.practice-hero')?.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 const READING_SOURCES = [
@@ -573,6 +654,7 @@ function switchWorkspace(view){
   if(view === 'discover') renderSourceDirectory();
   if(view === 'history') renderReadingHistory();
   if(view === 'vocab') syncVocabPanelData();
+  if(view === 'reading') renderDailyPlan();
 }
 
 function openImportPreview(text, meta = {}){
@@ -3101,8 +3183,11 @@ function rateCard(rating){
     const mins = SRS_STEPS_MIN[v.repetition];
     v.interval = mins;
     v.dueAt = Date.now() + mins * 60000;
+    v.lastPracticeAt = Date.now();
+    v.lastPracticeRating = rating;
     saveVocab();
   }
+  recordPracticeResult('vocab', {rating});
   reviewQueue.shift();
   showNextCard();
   renderVocab();
@@ -3145,6 +3230,7 @@ function saveCurrentArticleToHistory(){
   READING_HISTORY.unshift(item);
   READING_HISTORY = READING_HISTORY.slice(0, 50);
   saveReadingHistory();
+  renderDailyPlan();
 }
 
 function renderReadingHistory(){
@@ -3364,6 +3450,7 @@ async function initializeApp(){
   renderGrammar();
   renderSourceDirectory();
   renderPracticeSummary();
+  renderDailyPlan();
   const savedLevelResult = safeStorage.getItem('reading_level_result');
   if(savedLevelResult) showLevelResult(savedLevelResult);
   setTokenizerStatus('默认使用轻量词库，需要时可手动开启智能分词', '');

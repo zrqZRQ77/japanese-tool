@@ -2270,6 +2270,125 @@ body {
   margin: 0 auto;
 }
 
+.daily-plan {
+  grid-column: 1 / -1;
+  padding: 0 0 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.daily-plan-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.daily-plan-eyebrow {
+  color: var(--shusha);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.daily-plan h2 {
+  margin: 4px 0 0;
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.daily-plan-progress {
+  min-width: 58px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.daily-plan-progress.is-complete {
+  border-color: #aac9ba;
+  background: #eef7f2;
+  color: #38664f;
+}
+
+.daily-task-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.daily-task {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 68px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--sumi);
+  text-align: left;
+  cursor: pointer;
+}
+
+.daily-task:hover {
+  border-color: #aeb8b3;
+  background: #fafbf9;
+}
+
+.daily-task-status {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.daily-task-copy,
+.daily-task-copy b,
+.daily-task-copy small {
+  display: block;
+  min-width: 0;
+}
+
+.daily-task-copy b {
+  font-size: 14px;
+}
+
+.daily-task-copy small {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-task-action {
+  color: var(--shusha);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.daily-task.is-done .daily-task-status {
+  border-color: #aac9ba;
+  background: #eef7f2;
+  color: #38664f;
+}
+
+.daily-task.is-done .daily-task-action {
+  color: #557565;
+}
+
 body:not([data-view="reading"]) .reading-workbench {
   display: none !important;
 }
@@ -2759,6 +2878,22 @@ body[data-view="discover"] .discover-section {
   .reading-workbench {
     max-width: none;
     gap: 12px;
+  }
+
+  .daily-plan {
+    padding-bottom: 16px;
+  }
+
+  .daily-plan h2 {
+    font-size: 18px;
+  }
+
+  .daily-task-list {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-task {
+    min-height: 62px;
   }
 
   .reading-main .card-pad,
