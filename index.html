@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260629-33">
+<link rel="stylesheet" href="styles.css?v=20260629-34">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -59,6 +59,10 @@
           <span class="brand-text">読める</span>
         </div>
       </div>
+      <div class="global-search" role="search">
+        <input id="globalSearchInput" type="search" placeholder="搜索功能" aria-label="搜索功能" oninput="renderGlobalSearch()" onkeydown="handleGlobalSearchKey(event)" onfocus="renderGlobalSearch()">
+        <div class="global-search-results" id="globalSearchResults" aria-live="polite"></div>
+      </div>
 
       <nav class="sidebar-nav">
         <button class="nav-item active" data-view="reading" onclick="switchWorkspace('reading')">阅读</button>
@@ -80,12 +84,12 @@
         <div class="daily-plan-head">
           <div>
             <span class="daily-plan-eyebrow">今日学习</span>
-            <h2 id="dailyPlanTitle">完成一轮学习闭环</h2>
+            <h2 id="dailyPlanTitle">今天按这条线学</h2>
           </div>
           <div class="daily-plan-actions">
             <div class="daily-goal-summary" id="dailyGoalSummary">目标加载中</div>
             <button class="btn-ghost daily-goal-toggle" type="button" onclick="toggleLearningGoalSettings()">调整目标</button>
-            <div class="daily-plan-progress" id="dailyPlanProgress">0 / 3</div>
+            <div class="daily-plan-progress" id="dailyPlanProgress">0 / 4</div>
           </div>
         </div>
         <form class="daily-goal-settings is-hidden" id="dailyGoalSettings" onsubmit="saveLearningGoals(event)">
@@ -118,7 +122,6 @@
           </div>
           <div class="learning-path-steps" id="learningPathSteps"></div>
         </section>
-        <div class="daily-task-list" id="dailyTaskList"></div>
       </section>
       <!-- 阅读主界面 -->
       <section class="card reading-main">
@@ -714,6 +717,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260629-33"></script>
+<script src="app.js?v=20260629-34"></script>
 </body>
 </html>

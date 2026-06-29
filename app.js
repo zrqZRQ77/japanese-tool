@@ -702,22 +702,10 @@ function dailyTaskState(){
 }
 
 function renderDailyPlan(){
-  const list = document.getElementById('dailyTaskList');
   const progress = document.getElementById('dailyPlanProgress');
-  if(!list || !progress) return;
+  if(!progress) return;
   renderLearningGoals();
   renderLearningPath();
-  const tasks = dailyTaskState();
-  const completed = tasks.filter(task => task.done).length;
-  progress.textContent = `${completed} / ${tasks.length}`;
-  progress.classList.toggle('is-complete', completed === tasks.length);
-  list.innerHTML = tasks.map((task, index) => `
-    <button class="daily-task${task.done ? ' is-done' : ''}" type="button" onclick="openDailyTask('${task.type}')">
-      <span class="daily-task-status" aria-hidden="true">${task.done ? '✓' : index + 1}</span>
-      <span class="daily-task-copy"><b>${task.title}</b><small>${task.detail}</small></span>
-      <span class="daily-task-action">${task.done ? '已完成' : task.action}</span>
-    </button>
-  `).join('');
 }
 
 function guidedPathSteps(){
@@ -766,11 +754,17 @@ function nextGuidedStep(){
 function renderLearningPath(){
   const list = document.getElementById('learningPathSteps');
   const action = document.getElementById('learningPathAction');
+  const progress = document.getElementById('dailyPlanProgress');
   if(!list || !action) return;
   const steps = guidedPathSteps();
   const next = steps.find(step => !step.done) || steps[0];
+  const completed = steps.filter(step => step.done).length;
   action.textContent = next.action;
   action.dataset.step = next.type;
+  if(progress){
+    progress.textContent = `${completed} / ${steps.length}`;
+    progress.classList.toggle('is-complete', completed === steps.length);
+  }
   list.innerHTML = steps.map((step, index) => `
     <button class="learning-path-step${step.done ? ' is-done' : ''}${step.type === next.type ? ' is-current' : ''}" type="button" onclick="openGuidedStep('${step.type}')">
       <span>${step.done ? '✓' : index + 1}</span>
@@ -790,6 +784,75 @@ function openGuidedStep(type = ''){
     if(nextUnread) return openReadingQueueItem(nextUnread.id);
     switchWorkspace('discover');
     document.getElementById('readingQueueUrlInput')?.focus();
+  }
+}
+
+const GLOBAL_SEARCH_ITEMS = [
+  {label:'开始阅读', detail:'粘贴文章、链接或上传 TXT', keywords:'阅读 开始 粘贴 文章 txt 上传', action:()=>switchWorkspace('reading')},
+  {label:'调整今日目标', detail:'设置每天阅读、生词和练习数量', keywords:'目标 今日 学习 设置', action:()=>{ switchWorkspace('reading'); const panel = document.getElementById('dailyGoalSettings'); if(panel?.classList.contains('is-hidden')) toggleLearningGoalSettings(); }},
+  {label:'整理生词本', detail:'搜索、筛选、管理收藏词', keywords:'生词 单词 词汇 收藏 搜索 筛选', action:()=>switchWorkspace('vocab')},
+  {label:'复习到期词', detail:'打开闪卡复习', keywords:'复习 闪卡 到期 生词', action:()=>startReview()},
+  {label:'做文章理解练习', detail:'挖空和复述', keywords:'练习 文章 理解 挖空 复述', action:()=>focusPracticeModule('article')},
+  {label:'练生词', detail:'用生词本快速自测', keywords:'练习 生词 自测', action:()=>focusPracticeModule('vocab')},
+  {label:'练基础句型', detail:'N5-N4 打字题', keywords:'练习 句型 打字 N5 N4', action:()=>focusPracticeModule('typing')},
+  {label:'找阅读材料', detail:'按等级找来源，加入阅读清单', keywords:'找材料 阅读清单 来源 下一篇', action:()=>switchWorkspace('discover')},
+  {label:'水平测试', detail:'3 分钟定位阅读等级', keywords:'水平 测试 等级 JLPT', action:()=>switchWorkspace('test')},
+  {label:'学习历史', detail:'查看最近文章和 7 天进度', keywords:'历史 记录 进度 七天', action:()=>switchWorkspace('history')},
+  {label:'备份数据', detail:'导出或恢复学习数据', keywords:'备份 恢复 导出 数据', action:()=>switchWorkspace('history')},
+  {label:'语法词典', detail:'查询基础语法点', keywords:'语法 词典 查询 は て形 敬语', action:()=>switchWorkspace('grammar')}
+];
+
+function globalSearchMatches(item, keyword){
+  const text = `${item.label} ${item.detail} ${item.keywords}`.toLowerCase();
+  return text.includes(keyword.toLowerCase());
+}
+
+function renderGlobalSearch(){
+  const input = document.getElementById('globalSearchInput');
+  const panel = document.getElementById('globalSearchResults');
+  if(!input || !panel) return;
+  const keyword = input.value.trim();
+  if(!keyword){
+    panel.innerHTML = '';
+    panel.classList.remove('active');
+    return;
+  }
+  const matches = GLOBAL_SEARCH_ITEMS.filter(item => globalSearchMatches(item, keyword)).slice(0, 6);
+  panel.classList.add('active');
+  panel.innerHTML = matches.length
+    ? matches.map((item, index) => `
+      <button type="button" onclick="openGlobalSearchResult(${index})">
+        <b>${escapeHtml(item.label)}</b>
+        <small>${escapeHtml(item.detail)}</small>
+      </button>
+    `).join('')
+    : '<div class="global-search-empty">没有找到对应功能</div>';
+  panel.dataset.matches = JSON.stringify(matches.map(item => item.label));
+}
+
+function openGlobalSearchResult(index = 0){
+  const input = document.getElementById('globalSearchInput');
+  const keyword = (input?.value || '').trim();
+  const matches = keyword ? GLOBAL_SEARCH_ITEMS.filter(item => globalSearchMatches(item, keyword)).slice(0, 6) : [];
+  const item = matches[index];
+  if(!item) return;
+  item.action();
+  if(input) input.value = '';
+  const panel = document.getElementById('globalSearchResults');
+  if(panel){
+    panel.innerHTML = '';
+    panel.classList.remove('active');
+  }
+}
+
+function handleGlobalSearchKey(event){
+  if(event.key === 'Enter'){
+    event.preventDefault();
+    openGlobalSearchResult(0);
+  }
+  if(event.key === 'Escape'){
+    event.currentTarget.value = '';
+    renderGlobalSearch();
   }
 }
 
@@ -4204,8 +4267,12 @@ async function initializeApp(){
   document.addEventListener('mousedown', event=>{
     const tools = document.getElementById('selectionTools');
     const output = document.getElementById('output');
+    const search = document.querySelector('.global-search');
+    if(search?.contains(event.target)) return;
     if(tools?.contains(event.target) || output?.contains(event.target)) return;
     hideSelectionTools();
+    const panel = document.getElementById('globalSearchResults');
+    if(panel) panel.classList.remove('active');
   });
   document.addEventListener('keydown', event=>{
     if(event.key === 'Escape'){ closeExportModal(); closeImportPreview(); }
