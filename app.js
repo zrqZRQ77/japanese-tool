@@ -262,6 +262,7 @@ let CURRENT_FOOTNOTES = [];
 let READING_HISTORY = [];
 let READING_QUEUE = loadReadingQueue();
 let ACTIVE_READING_QUEUE_ID = Number(safeStorage.getItem('reading_queue_active_id') || 0) || null;
+let LEARNING_GOALS = loadLearningGoals();
 
 function practiceDateKey(){
   const now = new Date();
@@ -432,42 +433,132 @@ function isDateToday(value){
     && date.getDate() === today.getDate();
 }
 
+function defaultLearningGoals(){
+  return {
+    readingTarget: 1,
+    vocabTarget: 5,
+    practiceTarget: 1,
+    focus: 'balanced'
+  };
+}
+
+function clampGoalNumber(value, min, max, fallback){
+  const number = Math.round(Number(value));
+  if(!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, number));
+}
+
+function normalizeLearningGoals(goals){
+  const fallback = defaultLearningGoals();
+  const focus = ['balanced', 'reading', 'vocab', 'practice'].includes(goals?.focus) ? goals.focus : fallback.focus;
+  return {
+    readingTarget: clampGoalNumber(goals?.readingTarget, 0, 5, fallback.readingTarget),
+    vocabTarget: clampGoalNumber(goals?.vocabTarget, 0, 50, fallback.vocabTarget),
+    practiceTarget: clampGoalNumber(goals?.practiceTarget, 0, 20, fallback.practiceTarget),
+    focus
+  };
+}
+
+function loadLearningGoals(){
+  try{
+    return normalizeLearningGoals(JSON.parse(safeStorage.getItem('reading_learning_goals') || 'null'));
+  }catch{
+    return defaultLearningGoals();
+  }
+}
+
+function saveLearningGoals(event){
+  if(event) event.preventDefault();
+  LEARNING_GOALS = normalizeLearningGoals({
+    readingTarget: document.getElementById('goalReadingTarget')?.value,
+    vocabTarget: document.getElementById('goalVocabTarget')?.value,
+    practiceTarget: document.getElementById('goalPracticeTarget')?.value,
+    focus: document.getElementById('goalFocus')?.value
+  });
+  safeStorage.setItem('reading_learning_goals', JSON.stringify(LEARNING_GOALS));
+  renderLearningGoals();
+  renderDailyPlan();
+  document.getElementById('dailyGoalSettings')?.classList.add('is-hidden');
+}
+
+function toggleLearningGoalSettings(){
+  const panel = document.getElementById('dailyGoalSettings');
+  if(!panel) return;
+  renderLearningGoals();
+  panel.classList.toggle('is-hidden');
+}
+
+function focusLabel(value){
+  return {
+    balanced:'均衡',
+    reading:'阅读优先',
+    vocab:'生词优先',
+    practice:'练习优先'
+  }[value] || '均衡';
+}
+
+function renderLearningGoals(){
+  const goals = normalizeLearningGoals(LEARNING_GOALS);
+  LEARNING_GOALS = goals;
+  const readingInput = document.getElementById('goalReadingTarget');
+  const vocabInput = document.getElementById('goalVocabTarget');
+  const practiceInput = document.getElementById('goalPracticeTarget');
+  const focusSelect = document.getElementById('goalFocus');
+  if(readingInput) readingInput.value = goals.readingTarget;
+  if(vocabInput) vocabInput.value = goals.vocabTarget;
+  if(practiceInput) practiceInput.value = goals.practiceTarget;
+  if(focusSelect) focusSelect.value = goals.focus;
+  const summary = document.getElementById('dailyGoalSummary');
+  if(summary){
+    summary.textContent = `目标：读 ${goals.readingTarget} 篇 · 词 ${goals.vocabTarget} 个 · 练 ${goals.practiceTarget} 次 · ${focusLabel(goals.focus)}`;
+  }
+}
+
 function dailyTaskState(){
   const vocab = getAllVocab();
   const unreadQueue = READING_QUEUE.filter(item => item.status !== 'read');
   const dueCount = vocab.filter(item => isDue(item)).length;
   const vocabPracticeCount = Object.values(PRACTICE_STATS.vocab).reduce((sum, count) => sum + Number(count || 0), 0);
   const exerciseCount = Number(PRACTICE_STATS.typing.count || 0) + Number(PRACTICE_STATS.cloze.count || 0);
-  const hasReadToday = READING_HISTORY.some(item => isDateToday(item.date));
-  return [
+  const goals = normalizeLearningGoals(LEARNING_GOALS);
+  const readingCount = READING_HISTORY.filter(item => isDateToday(item.date)).length;
+  const hasReadToday = readingCount >= goals.readingTarget;
+  const hasEnoughVocabPractice = goals.vocabTarget <= 0 || vocabPracticeCount >= goals.vocabTarget;
+  const hasEnoughPractice = exerciseCount >= goals.practiceTarget;
+  const tasks = [
     {
       type:'reading',
-      title:'阅读一篇文章',
-      detail:hasReadToday ? '今天已经完成阅读' : unreadQueue.length ? `清单里还有 ${unreadQueue.length} 篇未读` : '导入文章并完成一次分析',
+      title:goals.readingTarget <= 0 ? '阅读今日休息' : goals.readingTarget > 1 ? `阅读 ${goals.readingTarget} 篇文章` : '阅读一篇文章',
+      detail:goals.readingTarget <= 0 ? '今天不安排阅读任务' : hasReadToday ? `已读 ${readingCount}/${goals.readingTarget} 篇` : unreadQueue.length ? `已读 ${readingCount}/${goals.readingTarget}，清单还有 ${unreadQueue.length} 篇` : `已读 ${readingCount}/${goals.readingTarget}，导入文章并分析`,
       done:hasReadToday,
       action:unreadQueue.length ? '读下一篇' : '去阅读'
     },
     {
       type:'vocab',
-      title:'复习到期生词',
-      detail:!vocab.length ? '先从阅读中收藏生词' : dueCount ? `${dueCount} 个词等待复习` : vocabPracticeCount ? '今日到期词已复习' : '今天没有到期词',
-      done:vocab.length > 0 && dueCount === 0,
+      title:goals.vocabTarget > 0 ? `练 ${goals.vocabTarget} 个生词` : '生词今日休息',
+      detail:goals.vocabTarget <= 0 ? '今天不安排生词任务' : !vocab.length ? `已练 0/${goals.vocabTarget}，先收藏生词` : dueCount ? `已练 ${vocabPracticeCount}/${goals.vocabTarget}，${dueCount} 个到期` : `已练 ${vocabPracticeCount}/${goals.vocabTarget}`,
+      done:hasEnoughVocabPractice,
       action:!vocab.length ? '去收藏' : dueCount ? '去复习' : '再练一组'
     },
     {
       type:'practice',
-      title:'完成一次练习',
-      detail:exerciseCount ? '今天已经完成练习' : '文章理解或基础句型任选一种',
-      done:exerciseCount > 0,
+      title:goals.practiceTarget <= 0 ? '练习今日休息' : goals.practiceTarget > 1 ? `完成 ${goals.practiceTarget} 次练习` : '完成一次练习',
+      detail:goals.practiceTarget <= 0 ? '今天不安排练习任务' : hasEnoughPractice ? `已做 ${exerciseCount}/${goals.practiceTarget} 次` : `已做 ${exerciseCount}/${goals.practiceTarget}，文章理解或基础句型`,
+      done:hasEnoughPractice,
       action:'去练习'
     }
   ];
+  if(goals.focus !== 'balanced'){
+    tasks.sort((a, b) => Number(b.type === goals.focus) - Number(a.type === goals.focus));
+  }
+  return tasks;
 }
 
 function renderDailyPlan(){
   const list = document.getElementById('dailyTaskList');
   const progress = document.getElementById('dailyPlanProgress');
   if(!list || !progress) return;
+  renderLearningGoals();
   const tasks = dailyTaskState();
   const completed = tasks.filter(task => task.done).length;
   progress.textContent = `${completed} / ${tasks.length}`;
@@ -3196,6 +3287,7 @@ function exportLearningBackup(){
     history:READING_HISTORY,
     practiceHistory:PRACTICE_HISTORY,
     readingQueue:READING_QUEUE,
+    learningGoals:LEARNING_GOALS,
     rubyOverrides:RUBY_OVERRIDES,
     preferredVoice:safeStorage.getItem('reading_tts_voice') || '',
     workspace:safeStorage.getItem('reading_workspace') || 'reading',
@@ -3213,6 +3305,7 @@ async function importLearningBackup(file){
     vocabData = Array.isArray(data.vocab) ? data.vocab : [];
     READING_HISTORY = Array.isArray(data.history) ? data.history.slice(0, 50) : [];
     READING_QUEUE = Array.isArray(data.readingQueue) ? normalizeReadingQueueItems(data.readingQueue) : READING_QUEUE;
+    LEARNING_GOALS = data.learningGoals ? normalizeLearningGoals(data.learningGoals) : LEARNING_GOALS;
     PRACTICE_HISTORY = Array.isArray(data.practiceHistory)
       ? data.practiceHistory.map(item => normalizePracticeStats(item, item.date)).slice(0, 30)
       : PRACTICE_HISTORY;
@@ -3225,6 +3318,7 @@ async function importLearningBackup(file){
     await saveVocab();
     saveReadingHistory();
     saveReadingQueue();
+    safeStorage.setItem('reading_learning_goals', JSON.stringify(LEARNING_GOALS));
     clearActiveReadingQueueItem();
     savePracticeStats();
     syncPracticeHistory();

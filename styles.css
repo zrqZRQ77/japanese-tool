@@ -2284,6 +2284,29 @@ body {
   margin-bottom: 14px;
 }
 
+.daily-plan-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.daily-goal-summary {
+  max-width: 360px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-goal-toggle {
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
 .daily-plan-eyebrow {
   color: var(--shusha);
   font-size: 12px;
@@ -2311,6 +2334,43 @@ body {
   border-color: #aac9ba;
   background: #eef7f2;
   color: #38664f;
+}
+
+.daily-goal-settings {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  gap: 10px;
+  align-items: end;
+  margin: 0 0 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfbf8;
+}
+
+.daily-goal-settings.is-hidden {
+  display: none;
+}
+
+.daily-goal-settings label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.daily-goal-settings input,
+.daily-goal-settings select {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--sumi);
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 9px;
 }
 
 .daily-task-list {
@@ -3054,6 +3114,31 @@ body[data-view="discover"] .discover-section {
 
   .daily-plan {
     padding-bottom: 16px;
+  }
+
+  .daily-plan-head,
+  .daily-plan-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .daily-plan-actions {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .daily-goal-summary {
+    max-width: 100%;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .daily-goal-settings {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .daily-goal-settings button {
+    grid-column: 1 / -1;
   }
 
   .daily-plan h2 {
