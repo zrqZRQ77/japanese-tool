@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E読%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260628-17">
+<link rel="stylesheet" href="styles.css?v=20260628-18">
 <script defer src="config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -195,22 +195,6 @@
           </div>
         </div>
 
-        <div class="card review-panel">
-          <div class="card-pad">
-            <div class="card-head"><span class="card-title"><span class="tag">学习</span>闪卡复习</span></div>
-            <div class="due-row">
-              <span class="due-count">生词本 <b id="totalVocabCount">0</b> 个 <span>（到期 <b id="dueCount">0</b> 个）</span></span>
-              <div class="review-actions">
-                <button class="btn-ghost" onclick="reviewAllVocab()">全部复习</button>
-                <button class="btn-primary" id="startReviewBtn" onclick="startReview()">复习到期词</button>
-              </div>
-            </div>
-            <div id="flashArea">
-              <div class="flash-empty">点击「全部复习」可以随时复习生词本里的词；「复习到期词」会按间隔重复提醒。</div>
-            </div>
-          </div>
-        </div>
-
       </div>
       </div>
 
@@ -244,10 +228,10 @@
             </div>
             <p class="review-copy">阅读中收藏的词会沉淀到这里；积累后可以按间隔重复复习。</p>
             <div class="review-actions">
-              <button class="btn-ghost" onclick="switchWorkspace('reading');reviewAllVocab()">全部复习</button>
-              <button class="btn-primary" onclick="switchWorkspace('reading');startReview()">复习到期词</button>
+              <button class="btn-ghost" onclick="reviewAllVocab()">全部复习</button>
+              <button class="btn-primary" id="startReviewBtn" onclick="startReview()">复习到期词</button>
             </div>
-            <div id="flashAreaPage" class="flash-page-placeholder">先积累几个生词，再开始复习。</div>
+            <div id="flashArea" class="flash-page-placeholder">先积累几个生词，再开始复习。</div>
           </section>
         </div>
       </div>
@@ -541,6 +525,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260628-17"></script>
+<script src="app.js?v=20260628-18"></script>
 </body>
 </html>

@@ -2496,7 +2496,8 @@ function formatDue(ts){
 function updateDueCount(){
   const now = Date.now();
   const due = vocabData.filter(v=>v.dueAt<=now).length;
-  document.getElementById('dueCount').textContent = due;
+  const dueEl = document.getElementById('dueCount');
+  if(dueEl) dueEl.textContent = due;
   const total = document.getElementById('totalVocabCount');
   if(total) total.textContent = vocabData.length;
   const pageDue = document.getElementById('dueCountPage');
@@ -2651,19 +2652,30 @@ let reviewQueue = [];
 let currentCardWord = null;
 let cardFlipped = false;
 
+function getFlashArea(){
+  return document.getElementById('flashArea');
+}
+
+function setFlashArea(message){
+  const area = getFlashArea();
+  if(area) area.innerHTML = `<div class="flash-empty">${message}</div>`;
+}
+
 function startReview(){
+  switchWorkspace('vocab');
   const now = Date.now();
   reviewQueue = vocabData.filter(v=>v.dueAt<=now).map(v=>v.word);
   if(reviewQueue.length===0){
-    document.getElementById('flashArea').innerHTML = '<div class="flash-empty">现在没有到期的词。想马上练习的话，可以点「全部复习」。</div>';
+    setFlashArea('现在没有到期的词。想马上练习的话，可以点「全部复习」。');
     return;
   }
   showNextCard();
 }
 
 function reviewAllVocab(){
+  switchWorkspace('vocab');
   if(!vocabData.length){
-    alert('生词本是空的，先去阅读文章收藏一些词吧。');
+    setFlashArea('生词本是空的。先去阅读页分析一篇文章，再收藏几个词。');
     return;
   }
   reviewQueue = [...vocabData]
@@ -2676,7 +2688,7 @@ function reviewAllVocab(){
 function showNextCard(){
   cardFlipped = false;
   if(reviewQueue.length===0){
-    document.getElementById('flashArea').innerHTML = '<div class="flash-empty">这一轮复习完成了 👏 生词本下方会显示每个词的下次复习时间。</div>';
+    setFlashArea('这一轮复习完成了。词汇列表会显示每个词的下次复习时间。');
     return;
   }
   currentCardWord = reviewQueue[0];
@@ -2686,7 +2698,8 @@ function showNextCard(){
 function renderCard(){
   const v = vocabData.find(x=>x.word===currentCardWord);
   if(!v){ reviewQueue.shift(); showNextCard(); return; }
-  const area = document.getElementById('flashArea');
+  const area = getFlashArea();
+  if(!area) return;
   if(!cardFlipped){
     area.innerHTML = `
       <div class="flash-stage" onclick="flipCard()">

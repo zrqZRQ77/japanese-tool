@@ -2118,7 +2118,7 @@ body[data-view="discover"] .discover-section {
 
 .vocab-page-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
   gap: 18px;
 }
 
@@ -2132,12 +2132,57 @@ body[data-view="discover"] .discover-section {
 
 .flash-page-placeholder {
   margin-top: 14px;
-  padding: 14px;
+  padding: 18px;
   border-radius: 12px;
   background: #f7f8f6;
   color: var(--muted);
   font-size: 13px;
   line-height: 1.7;
+}
+
+.vocab-page-review .flash-stage {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fcfcfb;
+  cursor: pointer;
+}
+
+.vocab-page-review .flash-word {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.vocab-page-review .flash-reading {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.vocab-page-review .flash-meaning {
+  margin-top: 12px;
+  font-size: 16px;
+}
+
+.vocab-page-review .flash-tap-hint,
+.vocab-page-review .flash-empty {
+  color: var(--muted);
+}
+
+.vocab-page-review .rate-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.vocab-page-review .rate-btn {
+  min-height: 42px;
 }
 
 .discover-section .card-pad {
@@ -2224,9 +2269,6 @@ body[data-view="discover"] .discover-section {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .review-panel {
-    grid-column: 1 / -1;
-  }
 }
 
 @media (max-width: 1024px) {
