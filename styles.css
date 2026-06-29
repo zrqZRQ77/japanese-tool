@@ -3049,6 +3049,48 @@ button,
   font-weight: 650;
 }
 
+.reading-insights {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fcfcfb;
+}
+
+.reading-insights > summary {
+  min-height: 44px;
+  padding: 12px 14px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.reading-insights > summary::-webkit-details-marker {
+  display: none;
+}
+
+.reading-insights > summary::after {
+  content: '+';
+  float: right;
+  color: var(--muted);
+}
+
+.reading-insights[open] > summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.reading-insights[open] > summary::after {
+  content: '-';
+}
+
+.reading-insights .import-disclosure,
+.reading-insights .legend-inline,
+.reading-insights .stats,
+.reading-insights .reading-analysis-card {
+  margin: 12px;
+}
+
 body[data-view="grammar"] .grammar-section,
 body[data-view="vocab"] .vocab-section-page,
 body[data-view="typing"] .typing-section,
@@ -4076,7 +4118,8 @@ body:not(.has-reading) #statsBar,
 body:not(.has-reading) #readingAnalysisCard,
 body:not(.has-reading) #readingHint,
 body:not(.has-reading) #nextStepBar,
-body:not(.has-reading) #output {
+body:not(.has-reading) #output,
+body:not(.has-reading) .reading-insights {
   display: none !important;
 }
 

@@ -178,36 +178,41 @@
             </details>
           </div>
 
-          <details class="import-disclosure">
-            <summary>更多设置</summary>
-            <div class="engine-row">
-              <label class="engine-toggle" title="开启后会自动给文本里的每个词分词、标注假名和释义,覆盖范围比内置词库更广（技术名称: kuromoji 分词引擎）"><input id="useKuromoji" type="checkbox"> 智能分词</label>
-              <span class="engine-status" id="tokenizerStatus">默认使用轻量词库，需要时可手动开启智能分词</span>
-            </div>
-          </details>
+          <div class="reading-hint" id="readingHint" style="display:none;">点击带颜色的词语，查看读音和释义。</div>
 
-          <!-- 简化的图例（一行） -->
-          <div class="legend-inline" id="legendInline" style="display:none;">
-            <span class="legend-label">词汇：</span>
-            <span><i class="dot dot-n5"></i>N5</span>
-            <span><i class="dot dot-n4"></i>N4</span>
-            <span><i class="dot dot-n3"></i>N3</span>
-            <span><i class="dot" style="background:var(--km);"></i>已识别</span>
-            <span><i class="dot dot-particle"></i>助词</span>
-            <span><i class="dot dot-trap"></i>易误解</span>
+          <div class="reading-output" id="output">
+            <span style="color:var(--ink-soft);font-size:14.5px;">点击「用示例开始」看效果 →</span>
           </div>
 
-          <div class="stats" id="statsBar"></div>
-          <section class="reading-analysis-card" id="readingAnalysisCard" style="display:none;" aria-labelledby="readingAnalysisTitle"></section>
-          <div class="reading-hint" id="readingHint" style="display:none;">点击带颜色的词语，查看读音和释义。</div>
           <div class="next-step-bar" id="nextStepBar" style="display:none;">
             <span>读完后</span>
             <button class="btn-primary" id="readingNextAction" onclick="openGuidedStep()">继续下一步</button>
           </div>
 
-          <div class="reading-output" id="output">
-            <span style="color:var(--ink-soft);font-size:14.5px;">点击「用示例开始」看效果 →</span>
-          </div>
+          <details class="reading-insights">
+            <summary>查看阅读分析与标注说明</summary>
+            <details class="import-disclosure">
+              <summary>更多设置</summary>
+              <div class="engine-row">
+                <label class="engine-toggle" title="开启后会自动给文本里的每个词分词、标注假名和释义,覆盖范围比内置词库更广（技术名称: kuromoji 分词引擎）"><input id="useKuromoji" type="checkbox"> 智能分词</label>
+                <span class="engine-status" id="tokenizerStatus">默认使用轻量词库，需要时可手动开启智能分词</span>
+              </div>
+            </details>
+
+            <!-- 简化的图例（一行） -->
+            <div class="legend-inline" id="legendInline" style="display:none;">
+              <span class="legend-label">词汇：</span>
+              <span><i class="dot dot-n5"></i>N5</span>
+              <span><i class="dot dot-n4"></i>N4</span>
+              <span><i class="dot dot-n3"></i>N3</span>
+              <span><i class="dot" style="background:var(--km);"></i>已识别</span>
+              <span><i class="dot dot-particle"></i>助词</span>
+              <span><i class="dot dot-trap"></i>易误解</span>
+            </div>
+
+            <div class="stats" id="statsBar"></div>
+            <section class="reading-analysis-card" id="readingAnalysisCard" style="display:none;" aria-labelledby="readingAnalysisTitle"></section>
+          </details>
         </div>
       </section>
 
