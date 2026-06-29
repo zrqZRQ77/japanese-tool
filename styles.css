@@ -1156,6 +1156,113 @@ button:disabled {
   color: var(--ainezumi);
 }
 
+.history-toolbar,
+.history-subhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.history-toolbar {
+  flex-wrap: wrap;
+}
+
+.history-toolbar .btn-ghost {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.weekly-progress {
+  padding: 20px 0 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.history-subhead h2 {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+.history-subhead p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.weekly-progress-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.weekly-progress-summary > div {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fcfcfb;
+}
+
+.weekly-progress-summary b,
+.weekly-progress-summary span {
+  display: block;
+}
+
+.weekly-progress-summary b {
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.weekly-progress-summary span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.weekly-practice-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+  height: 142px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.weekly-practice-day {
+  display: grid;
+  grid-template-rows: 16px minmax(0, 1fr) 24px;
+  justify-items: center;
+  min-width: 0;
+}
+
+.weekly-practice-value,
+.weekly-practice-label {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.weekly-practice-bar {
+  align-self: end;
+  width: min(28px, 70%);
+  min-height: 4px;
+  border-radius: 3px 3px 0 0;
+  background: var(--line);
+}
+
+.weekly-practice-bar.is-active {
+  background: var(--shusha);
+}
+
+.weekly-practice-label {
+  padding-top: 7px;
+}
+
+.article-history-head {
+  margin: 22px 0 14px;
+}
+
 /* ===== 打字练习页面样式 ===== */
 .typing-grid {
   display: grid;
@@ -2711,6 +2818,32 @@ body[data-view="discover"] .discover-section {
   .practice-summary-grid div,
   .vocab-page-summary > div {
     padding: 11px;
+  }
+
+  .history-section .card-head,
+  .history-subhead {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .history-toolbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .history-toolbar .btn-ghost,
+  .history-subhead > .btn-ghost {
+    width: 100%;
+    min-height: 38px;
+  }
+
+  .weekly-progress-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .weekly-practice-chart {
+    gap: 5px;
   }
 
   .practice-summary-grid b {

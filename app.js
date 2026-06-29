@@ -241,6 +241,8 @@ let currentVocabPracticeIndex = 0;
 let vocabPracticeAnswerVisible = false;
 let articlePracticeMode = 'cloze';
 let PRACTICE_STATS = loadPracticeStats();
+let PRACTICE_HISTORY = loadPracticeHistory();
+syncPracticeHistory();
 let CURRENT_ARTICLE_TEXT = '';
 let CLOZE_ITEMS = [];
 let RETELL_RECOGNITION = null;
@@ -259,7 +261,8 @@ let CURRENT_FOOTNOTES = [];
 let READING_HISTORY = [];
 
 function practiceDateKey(){
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 function defaultPracticeStats(){
@@ -292,6 +295,40 @@ function savePracticeStats(){
   safeStorage.setItem('reading_practice_stats', JSON.stringify(PRACTICE_STATS));
 }
 
+function normalizePracticeStats(stats, date = practiceDateKey()){
+  return {
+    ...defaultPracticeStats(),
+    ...(stats || {}),
+    date,
+    vocab: { again:0, hard:0, easy:0, ...(stats?.vocab || {}) },
+    typing: { count:0, lastScore:null, ...(stats?.typing || {}) },
+    cloze: { count:0, lastCorrect:null, lastTotal:null, ...(stats?.cloze || {}) }
+  };
+}
+
+function loadPracticeHistory(){
+  try{
+    const stored = JSON.parse(safeStorage.getItem('reading_practice_history') || '[]');
+    if(!Array.isArray(stored)) return [];
+    return stored
+      .filter(item => /^\d{4}-\d{2}-\d{2}$/.test(item?.date || ''))
+      .map(item => normalizePracticeStats(item, item.date))
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 30);
+  }catch{
+    return [];
+  }
+}
+
+function syncPracticeHistory(){
+  const normalized = normalizePracticeStats(PRACTICE_STATS, PRACTICE_STATS.date);
+  const remaining = PRACTICE_HISTORY.filter(item => item.date !== normalized.date);
+  PRACTICE_HISTORY = [normalized, ...remaining]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 30);
+  safeStorage.setItem('reading_practice_history', JSON.stringify(PRACTICE_HISTORY));
+}
+
 function recordPracticeResult(type, payload = {}){
   if(PRACTICE_STATS.date !== practiceDateKey()) PRACTICE_STATS = defaultPracticeStats();
   PRACTICE_STATS.total += 1;
@@ -309,7 +346,9 @@ function recordPracticeResult(type, payload = {}){
     PRACTICE_STATS.vocab[rating] = (PRACTICE_STATS.vocab[rating] || 0) + 1;
   }
   savePracticeStats();
+  syncPracticeHistory();
   renderPracticeSummary();
+  renderLearningProgress();
 }
 
 function renderPracticeSummary(){
@@ -325,6 +364,59 @@ function renderPracticeSummary(){
     <div><b>${typingScore}</b><span>打字最近</span></div>
     <div><b>${clozeScore}</b><span>挖空最近</span></div>
   `;
+}
+
+function recentPracticeDays(count = 7){
+  const byDate = new Map(PRACTICE_HISTORY.map(item => [item.date, item]));
+  return Array.from({length:count}, (_, offset) => {
+    const date = new Date();
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() - (count - 1 - offset));
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return byDate.get(key) || normalizePracticeStats(null, key);
+  });
+}
+
+function practiceStreak(){
+  const practiced = new Set(PRACTICE_HISTORY.filter(item => item.total > 0).map(item => item.date));
+  const cursor = new Date();
+  cursor.setHours(12, 0, 0, 0);
+  if(!practiced.has(practiceDateKey())) cursor.setDate(cursor.getDate() - 1);
+  let streak = 0;
+  while(streak < 365){
+    const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+    if(!practiced.has(key)) break;
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+function renderLearningProgress(){
+  const summary = document.getElementById('weeklyProgressSummary');
+  const chart = document.getElementById('weeklyPracticeChart');
+  if(!summary || !chart) return;
+  const days = recentPracticeDays();
+  const total = days.reduce((sum, day) => sum + Number(day.total || 0), 0);
+  const activeDays = days.filter(day => day.total > 0).length;
+  const needsReview = days.reduce((sum, day) => sum + Number(day.vocab.again || 0), 0);
+  const maxTotal = Math.max(1, ...days.map(day => Number(day.total || 0)));
+  summary.innerHTML = `
+    <div><b>${total}</b><span>7 天练习</span></div>
+    <div><b>${activeDays}</b><span>练习天数</span></div>
+    <div><b>${practiceStreak()}</b><span>连续天数</span></div>
+    <div><b>${needsReview}</b><span>需加强词汇</span></div>
+  `;
+  chart.innerHTML = days.map(day => {
+    const date = new Date(`${day.date}T12:00:00`);
+    const label = date.toLocaleDateString('zh-CN', {weekday:'short'}).replace('周', '');
+    const height = day.total ? Math.max(14, Math.round(day.total / maxTotal * 100)) : 4;
+    return `<div class="weekly-practice-day" title="${day.date}：${day.total} 次练习">
+      <span class="weekly-practice-value">${day.total || ''}</span>
+      <span class="weekly-practice-bar${day.total ? ' is-active' : ''}" style="height:${height}%"></span>
+      <span class="weekly-practice-label">${label}</span>
+    </div>`;
+  }).join('');
 }
 
 const READING_SOURCES = [
@@ -2842,6 +2934,7 @@ function exportLearningBackup(){
     exportedAt:new Date().toISOString(),
     vocab:vocabData,
     history:READING_HISTORY,
+    practiceHistory:PRACTICE_HISTORY,
     rubyOverrides:RUBY_OVERRIDES,
     preferredVoice:safeStorage.getItem('reading_tts_voice') || '',
     workspace:safeStorage.getItem('reading_workspace') || 'reading',
@@ -2858,14 +2951,22 @@ async function importLearningBackup(file){
     if(!data || data.app !== 'dokedo-japanese-reader') throw new Error('这不是有效的读得懂备份文件。');
     vocabData = Array.isArray(data.vocab) ? data.vocab : [];
     READING_HISTORY = Array.isArray(data.history) ? data.history.slice(0, 50) : [];
+    PRACTICE_HISTORY = Array.isArray(data.practiceHistory)
+      ? data.practiceHistory.map(item => normalizePracticeStats(item, item.date)).slice(0, 30)
+      : PRACTICE_HISTORY;
+    const restoredToday = PRACTICE_HISTORY.find(item => item.date === practiceDateKey());
+    if(restoredToday) PRACTICE_STATS = normalizePracticeStats(restoredToday, restoredToday.date);
     RUBY_OVERRIDES = data.rubyOverrides && typeof data.rubyOverrides === 'object' ? data.rubyOverrides : {};
     safeStorage.setItem('reading_ruby_overrides', JSON.stringify(RUBY_OVERRIDES));
     if(data.preferredVoice) safeStorage.setItem('reading_tts_voice', data.preferredVoice);
     if(data.levelResult) safeStorage.setItem('reading_level_result', data.levelResult);
     await saveVocab();
     saveReadingHistory();
+    savePracticeStats();
+    syncPracticeHistory();
     renderVocab();
     renderReadingHistory();
+    renderPracticeSummary();
     alert('备份已恢复。');
   }catch(error){
     alert(error.message || '备份恢复失败。');
@@ -3047,6 +3148,7 @@ function saveCurrentArticleToHistory(){
 }
 
 function renderReadingHistory(){
+  renderLearningProgress();
   const list = document.getElementById('historyList');
   if(!list) return;
   const keyword = (document.getElementById('historySearch')?.value || '').trim().toLowerCase();
